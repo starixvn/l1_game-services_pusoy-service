@@ -1,0 +1,37 @@
+variables:
+  SMOKE_PRODUCT_NAME: 1007
+  ENABLE_NODEJS_INTEGRATION_TEST: "true"
+  NODEJS_INTEGRATION_TEST_IMAGE_VERSION: hub.lumigame.com/base/node:20.9.0-alpine-24h1.1
+  NODEJS_IMAGE: hub.lumigame.com/base/node:20.9.0-alpine-24h1.1
+  NODEJS_INTEGRATION_TEST_DB_IMAGE_VERSION: hub.lumigame.com/docker-hub/library/mongo:4.4.8
+
+include:
+  - project: "ci/core-cicd"
+    ref: main
+    file: "luminet.gitlab-ci.yml"
+
+integration_test_js:
+  before_script:
+    - cp ./src/app-configs.IGT.ts ./src/app-configs.IGT.original.ts
+    - cp ./configs/app-configs.IGT.ts ./src/app-configs.IGT.ts
+    - npm set registry $NPM_LUMI_HOST
+    - yarn install
+  artifacts:
+    when: always
+    paths:
+      - ./coverage
+    reports:
+      junit:
+        - ./coverage/integration-tests.xml
+    expire_in: 1 day
+
+.unit_test_js:
+  artifacts:
+    when: always
+    paths:
+      - ./**/lcov.info
+      - ./coverage
+    reports:
+      junit:
+        - ./coverage/unit-tests.xml
+    expire_in: 1 day
