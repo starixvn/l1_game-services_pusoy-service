@@ -3,12 +3,6 @@ import mongoose from "mongoose";
 
 const modelName = "settlement-results";
 
-export type Hand<DataType> = {
-    front: DataType;
-    middle: DataType;
-    back: DataType;
-};
-
 const settlementResultSchema = new mongoose.Schema<Settlement>(
     {
         crack: {
