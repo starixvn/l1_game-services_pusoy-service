@@ -48,7 +48,24 @@ const settlementResultSchema = new mongoose.Schema<Settlement>(
     { _id: false }
 );
 
-const Schema = new mongoose.Schema({
+export interface IRound {
+    id: number;
+    result: {
+        hand: {
+            front: number[];
+            middle: number[];
+            back: number[];
+        };
+        playerId: string;
+        time: Date;
+    }[];
+    settlementResult: Settlement & { playerId: string; time: Date }[];
+    roundStartTime: Date;
+    time: Date;
+    exchangeRateId: number;
+}
+
+const Schema = new mongoose.Schema<IRound>({
     id: { type: Number, required: true },
     result: { type: [resultSchema] },
     settlementResult: { type: [settlementResultSchema] },
@@ -57,4 +74,6 @@ const Schema = new mongoose.Schema({
     exchangeRateId: { type: Number, require: true },
 });
 
-export default mongoose.model("pusoy_rounds", Schema);
+const Round = mongoose.model("pusoy_rounds", Schema);
+
+export default Round;
