@@ -2036,10 +2036,10 @@
   resolved "http://npm.lumigame.com/@protobufjs/utf8/-/utf8-1.1.0.tgz#a777360b5b39a1a2e5106f8e858f2fd2d060c570"
   integrity sha1-p3c2C1s5oaLlEG+OhY8v0tBgxXA=
 
-"@rd/pusoy-rules@^1.0.1-beta.8":
-  version "1.0.1-beta.8"
-  resolved "http://npm.lumigame.com/@rd/pusoy-rules/-/pusoy-rules-1.0.1-beta.8.tgz#dc958fdb91368d4b53a9e9eea70941198a9b4f79"
-  integrity sha512-Ld1Eidyer0BgNkkgaqxSto/USXSSqWGEu9NtuJ26Q7RIGOZ3zTnM/0u6v5n/Zp9SXKFSBGGgFUELKKU0tIUesQ==
+"@rd/pusoy-rules@1.0.1-beta.10":
+  version "1.0.1-beta.10"
+  resolved "http://npm.lumigame.com/@rd/pusoy-rules/-/pusoy-rules-1.0.1-beta.10.tgz#71fbff003bf8e4f04e9f90795c7bc0acdff114e0"
+  integrity sha512-pw2BCdOXiQkkBsP5/SpFbkOfm4OdLX5QPxm+09e82dRn4VQ1XPuNRKCPVqlWRgmvB+kMT2QTjQ15uAW3kWuH9A==
 
 "@sentry/core@5.30.0":
   version "5.30.0"
@@ -2362,6 +2362,11 @@
   version "1.2.7"
   resolved "http://npm.lumigame.com/@types/range-parser/-/range-parser-1.2.7.tgz#50ae4353eaaddc04044279812f52c8c65857dbcb"
   integrity sha512-hKormJbkJqzQGhziax5PItDUTMAM9uE2XXQmM37dyd4hVM+5aVl7oVxMVUiVQn2oCQFN/LKCZdvSM0pFRqbSmQ==
+
+"@types/sc-common@1.0.0-beta.0":
+  version "1.0.0-beta.0"
+  resolved "http://npm.lumigame.com/@types/sc-common/-/sc-common-1.0.0-beta.0.tgz#494a143c7a1373d59f1677f8d4375b8c478059aa"
+  integrity sha512-Ql33qm27bpXj5lTXAmEZYA5AcLm+xEKD3oRQh++MFsfUVwqA5B1C9hjNl9jncwpBC6wzLC+Zv0ARysctltR+vw==
 
 "@types/sc-game-base@1.0.0-beta.2":
   version "1.0.0-beta.2"
@@ -6928,7 +6933,7 @@ sc-base-database@2.2.0, sc-base-database@^2.2.0:
     mongoose "^5.9.25"
     sc-common "1.8.1"
 
-sc-common@1.8.1:
+sc-common@1.8.1, sc-common@^1.8.1:
   version "1.8.1"
   resolved "http://npm.lumigame.com/sc-common/-/sc-common-1.8.1.tgz#c79e6131011b541baab8d775ff53b3b081ff8221"
   integrity sha512-78bocqv9txbr8jyi83CjANBpLN+ZFcyvRQVQJvsBU+8ZNnqibx9m5p/yUMPNX1miMyi53+4ELQtB5kmr689Q5Q==

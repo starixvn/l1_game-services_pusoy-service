@@ -4,7 +4,10 @@ export default class GameDefinition extends BaseGameDefinition {
         {
             id = 0,
             name = "",
-            durations = {},
+            durations = {
+                lockArrange: 5,
+                wholeRound: 55,
+            },
             choices = [],
             choicesMapper = {},
             hedgeBetGroups = [],
@@ -40,4 +43,13 @@ export type GameSettings = {
     historyPageSize?: number;
     provablyFair?: boolean;
     botSettings?: any;
+};
+
+export type Duration = {
+    lockArrange: number;
+    wholeRound: number;
+    placingBets: number;
+    lockingBet: number;
+    showingResult: number;
+    startingRound: number;
 };
