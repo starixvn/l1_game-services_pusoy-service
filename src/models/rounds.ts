@@ -1,14 +1,6 @@
 import { Settlement } from "@rd/pusoy-rules";
 import mongoose from "mongoose";
 
-const seatMappingSchema = new mongoose.Schema(
-    {
-        seatId: { type: String, require: true },
-        playerId: { type: String, require: true },
-    },
-    { _id: false }
-);
-
 const resultSchema = new mongoose.Schema(
     {
         hand: {
@@ -16,8 +8,8 @@ const resultSchema = new mongoose.Schema(
             middle: { type: [Number], require: true },
             back: { type: [Number], require: true },
         },
-        isAlertNatural: { type: Boolean, default: false },
-        seatId: { type: String, required: true },
+        playerId: { type: String, require: false },
+        time: { type: Date, default: new Date() },
     },
     { _id: false }
 );
@@ -50,7 +42,8 @@ const settlementResultSchema = new mongoose.Schema<Settlement>(
             full: { type: Number, required: true },
         },
         sum: { type: Number, required: true },
-        seatId: { type: String, required: true },
+        playerId: { type: String, require: false },
+        time: { type: Date, default: new Date() },
     },
     { _id: false }
 );
@@ -59,7 +52,7 @@ const Schema = new mongoose.Schema({
     id: { type: Number, required: true },
     result: { type: [resultSchema] },
     settlementResult: { type: [settlementResultSchema] },
-    seats: { type: [seatMappingSchema] },
+    roundStartTime: { type: Date, default: new Date() },
     time: { type: Date, default: new Date() },
     exchangeRateId: { type: Number, require: true },
 });

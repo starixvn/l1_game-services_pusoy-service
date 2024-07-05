@@ -6,13 +6,12 @@ const bet = {
     uid: { type: String, required: true },
     name: { type: String, required: true },
 
-    roundDeposit: { type: Number, default: 0 },
+    stakeLevel: { type: Number, default: 0 },
 
     betwin: { type: Number, default: 0 },
     time: { type: Date },
     totalAmount: { type: Number, default: 0 },
 
-    clientSeed: { type: String, default: "" },
     siteId: { type: String },
     freeBet: { type: Boolean, default: false },
 
