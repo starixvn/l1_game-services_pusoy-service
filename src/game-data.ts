@@ -18,6 +18,7 @@ export type InGamePlayerData = {
     isRoundEnded: boolean;
     remainingTime: number;
     result: HandResult[];
+    outTable: boolean;
 };
 
 export type InGameData = {
