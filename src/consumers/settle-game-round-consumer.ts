@@ -1,6 +1,7 @@
 import { Core } from "sc-game-base";
 import { IRound } from "../models/rounds";
 import mongoose from "mongoose";
+import { Hand } from "@rd/pusoy-rules";
 
 export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.SettleGameRoundConsumer {
     declare roundsRepository: mongoose.Model<IRound>;
@@ -18,8 +19,8 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
             return;
         }
 
-        const hands: any = [];
-        const playerIds: any = [];
+        const hands: Hand<number[]>[] = [];
+        const playerIds: string[] = [];
         round.result.forEach((settlement) => {
             hands.push(settlement.hand);
             playerIds.push(settlement.playerId);
