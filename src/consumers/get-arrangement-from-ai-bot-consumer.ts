@@ -5,6 +5,7 @@ import GameData from "../game-data";
 import { GameSettings } from "../game-definition";
 import axios from "axios";
 import { Hand } from "@rd/pusoy-rules";
+import { shuffle } from "sc-common/helpers/array-helper";
 
 export default class GetArrangementFromAIBotConsumer {
     roundsRepository: Model<IRound>;
@@ -26,9 +27,8 @@ export default class GetArrangementFromAIBotConsumer {
         }
 
         for (let i = 1; i < round.result.length; i++) {
-            const botUrl = appConfigs.botUrlMapping[round.result[i].playerId];
             const cards = [...round.result[i].hand.front, ...round.result[i].hand.middle, ...round.result[i].hand.back];
-            const hand = await this.getArrangementFromBot(botUrl, cards);
+            const hand = await this.getArrangementFromBot(cards);
             if (!hand) {
                 continue;
             }
@@ -44,7 +44,8 @@ export default class GetArrangementFromAIBotConsumer {
         }
     }
 
-    getArrangementFromBot = async (botUrl: string, cards: number[]): Promise<Hand<number[]> | undefined> => {
+    getArrangementFromBot = async (cards: number[]): Promise<Hand<number[]> | undefined> => {
+        const botUrl = shuffle(appConfigs.botUrls)[0];
         const data = {
             private: {
                 player_id: "",

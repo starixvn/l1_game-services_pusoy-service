@@ -1,9 +1,9 @@
-const botUrlMapping: Record<string, string> = {
-    "pusoy-bot-simple": "https://bots.lumigame.com/pusoy-bot-simple/",
-};
-
 const appConfigs = {
-    botUrlMapping: botUrlMapping,
+    botUrls: [
+        "https://bots.lumigame.com/chinese-poker-bot-simple",
+        "https://chinesepoker-sai.nexdev.net",
+        "https://bots.lumigame.com/chinese-poker-bot-probability",
+    ],
 };
 
 export default appConfigs;
