@@ -3,11 +3,22 @@ import GameData, { InGamePlayerData } from "../game-data";
 import GameDefinition from "../game-definition";
 import { RealPlayer } from "../type/real-player";
 
+export type BetPayload = {
+    stackLevel: number;
+    amount: number;
+    roundId: number;
+    m: any;
+    receivedTime: Date;
+    mode: any;
+    clientSentTime: Date;
+    time: Date;
+};
+
 export default class PlaceBetConsumer extends BaseEventConsumers.PlaceBetConsumer {
     declare gameData: GameData;
     declare definition: GameDefinition;
 
-    consume(realPlayer: RealPlayer, payload: any): void {
+    consume(realPlayer: RealPlayer, payload: BetPayload): void {
         const playerName = realPlayer.profile.name;
 
         const betAmount = payload.stackLevel ? 1000 : payload.stackLevel * this.gameData.gameConfigs.maxbet;
