@@ -1,7 +1,16 @@
 import { Settlement } from "@rd/pusoy-rules";
 import mongoose from "mongoose";
 
-const resultSchema = new mongoose.Schema(
+export type HandResult = {
+    hand: {
+        front: number[];
+        middle: number[];
+        back: number[];
+    };
+    playerId: string;
+};
+
+const resultSchema = new mongoose.Schema<HandResult>(
     {
         hand: {
             front: { type: [Number], require: true },
