@@ -4,6 +4,11 @@ import { Core } from "sc-game-base";
 export default class UserDisconnectConsumer extends Core.BaseEventConsumers.UserDisconnectConsumer {
     declare gameData: GameData;
 
+    constructor(gameData: GameData) {
+        super(gameData);
+        this.gameData = gameData;
+    }
+
     consume(socketClient: any) {
         const realPlayer = this.gameData.realPlayers[socketClient.id];
 

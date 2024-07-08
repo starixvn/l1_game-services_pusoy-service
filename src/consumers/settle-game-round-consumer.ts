@@ -1,22 +1,62 @@
-import { Core } from "sc-game-base";
 import { IRound } from "../models/rounds";
-import mongoose from "mongoose";
-import { Hand } from "@rd/pusoy-rules";
+import mongoose, { Model } from "mongoose";
+import { Hand, Natural, Settlement } from "@rd/pusoy-rules";
+import GameDefinition, { GameSettings } from "../game-definition";
+import GameData from "../game-data";
+import { Core } from "sc-game-base";
+import { RoundResultPublisher, UserBetResultPublisher } from "sc-game-base/src/core/event-publishers";
+import GameManagementApiClientFactory from "sc-game-base/src/core/game-management-api";
 
 export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.SettleGameRoundConsumer {
     declare roundsRepository: mongoose.Model<IRound>;
+    gameSettings: GameSettings;
+    declare gameData: GameData;
+    declare definition: GameDefinition;
+
+    constructor({
+        definition,
+        gameData,
+        roundResultPublisher,
+        userBetResultPublisher,
+        endGame,
+        roundsRepository,
+        betsRepository,
+        gameManagementApiClientFactory,
+        gameSettings,
+    }: {
+        definition: GameDefinition;
+        gameData: GameData;
+        roundResultPublisher: RoundResultPublisher;
+        userBetResultPublisher: UserBetResultPublisher;
+        endGame: any;
+        roundsRepository: Model<any>;
+        betsRepository: Model<any>;
+        gameManagementApiClientFactory: GameManagementApiClientFactory;
+        gameSettings: GameSettings;
+    }) {
+        super({
+            definition,
+            gameData,
+            roundResultPublisher,
+            userBetResultPublisher,
+            endGame,
+            roundsRepository,
+            betsRepository,
+            gameManagementApiClientFactory,
+        });
+
+        this.gameSettings = gameSettings;
+    }
 
     async settleTable(playerName: string) {
         const betTrack = this.gameData.ingame[playerName].betTracks;
-
         if (!betTrack) {
-            return;
+            return 0;
         }
 
         const round = await this.roundsRepository.findOne({ id: betTrack.roundId }).lean().exec();
-
         if (!round) {
-            return;
+            return 0;
         }
 
         const hands: Hand<number[]>[] = [];
@@ -25,14 +65,46 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
             hands.push(settlement.hand);
             playerIds.push(settlement.playerId);
         });
-        const settlementResult = this.definition.settle(hands) as [];
-        for (let i = 0; i < settlementResult.length; i++) {
-            Object.assign(settlementResult[i], { playerId: playerIds[i] });
+        const settlement = this.definition.settle(hands) as Settlement[];
+        const settlementResult = [];
+        const settleEffectDuration = {
+            natural: 0,
+            fullPusoy: 0,
+            crack: 0,
+            mini: 0,
+        };
+        const miniPusoySet: Set<string> = new Set();
+        for (let i = 0; i < settlement.length; i++) {
+            settlementResult.push({
+                ...settlement[i],
+                time: new Date(),
+                playerId: playerIds[i],
+            });
+            if (settlement[i].natural.name !== Natural.Unknown) {
+                settleEffectDuration.natural = this.gameSettings.durations.settleEffect.natural;
+            }
+            if (settlement[i].pusoy.full > 0) {
+                settleEffectDuration.fullPusoy = this.gameSettings.durations.settleEffect.pusoy.full;
+            }
+            if (settlement[i].crack.isCrack) {
+                settleEffectDuration.crack = this.gameSettings.durations.settleEffect.crack;
+            }
+            if (settlement[i].pusoy.mini) {
+                Object.entries(settlement[i].pusoy.mini).forEach(([key, value]) => {
+                    if (value > 0) {
+                        miniPusoySet.add(key);
+                    }
+                });
+            }
         }
+
+        settleEffectDuration.mini = miniPusoySet.size * this.gameSettings.durations.settleEffect.pusoy.mini;
+        const totalSettleEffectDuration = Object.values(settleEffectDuration).reduce((a, b) => a + b, 0);
 
         await this.roundsRepository.updateOne({ id: betTrack.roundId }, { settlementResult: settlementResult }).exec();
 
-        delete this.gameData.ingame[playerName];
-        this.roundResultPublisher.publishRoundResult({ roundId: betTrack.roundId, settlementResult: settlementResult });
+        this.roundResultPublisher.publishRoundResult({ roundId: betTrack.roundId, settlementResult: settlement });
+
+        return totalSettleEffectDuration;
     }
 }

@@ -14,11 +14,12 @@ export type InGamePlayerData = {
     betProcessing: boolean;
     ownBets: any;
     roundId: number;
-
+    submitted: boolean;
     isRoundEnded: boolean;
     remainingTime: number;
     result: HandResult[];
     outTable: boolean;
+    arrangeTime: number[];
 };
 
 export type InGameData = {
