@@ -1,5 +1,6 @@
 import { TableGameData } from "sc-game-base/src/table";
 import { HandResult } from "./models/rounds";
+import { UserInfos } from "sc-game-management-client";
 export default class GameData extends TableGameData {
     declare ingame: InGameData;
 }
@@ -21,7 +22,7 @@ export type InGamePlayerData = {
     outTable: boolean;
     allPlayersSubmittedTime: number;
     arrangeTime: number[];
-    otherPlayers: string[];
+    otherPlayers: UserInfos[];
 };
 
 export type InGameData = {
