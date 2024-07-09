@@ -44,7 +44,7 @@ export default class InGameConsumer extends TableInGameConsumer {
             remainingTime: roundData.remainingTime,
             isRoundEnded: roundData.isRoundEnded,
             roundId: roundData.roundId,
-            hand: roundData.result.filter((handResult) => handResult.playerId === realPlayer.session.playerId)[0],
+            hand: roundData.result[realPlayer.session.playerId],
         };
     }
 }

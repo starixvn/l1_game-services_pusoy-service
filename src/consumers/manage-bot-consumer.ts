@@ -1,56 +1,69 @@
-import GameManagementApiClientFactory, { getOrDefault } from "sc-game-base/src/core/game-management-api";
+import GameManagementApiClientFactory, { getOrDefault, post } from "sc-game-base/src/core/game-management-api";
 import { UserInfos, gameManagementClient } from "sc-game-management-client";
-import Chance from "chance";
 import GameData from "../game-data";
-import { getDefaultHandFromCards, shuffle } from "../helpers";
+import { shuffle } from "../helpers";
 import appConfigs from "../app-configs";
 import { Hand } from "@rd/pusoy-rules";
 import axios from "axios";
-import { GameSettings } from "../game-definition";
+import GameDefinition, { Duration } from "../game-definition";
+import Chance from "chance";
 
 export default class ManageBotConsumer {
     gameManagementApiClient: gameManagementClient;
+    declare gameData: GameData;
+    declare definition: GameDefinition;
     chance: Chance.Chance;
-    maxNumberOfBots: number;
-    gameData: GameData;
-    gameSettings: GameSettings;
 
     constructor({
         gameManagementApiClient,
-        maxNumberOfBots,
         gameData,
-        gameSettings,
+        definition,
     }: {
         gameManagementApiClient: GameManagementApiClientFactory;
         maxNumberOfBots: number;
         gameData: GameData;
-        gameSettings: GameSettings;
+        definition: GameDefinition;
     }) {
         this.gameManagementApiClient = gameManagementApiClient.instance();
-        this.chance = new Chance();
-        this.maxNumberOfBots = maxNumberOfBots;
         this.gameData = gameData;
-        this.gameSettings = gameSettings;
+        this.definition = definition;
+        this.chance = new Chance();
     }
 
-    async getBots(): Promise<UserInfos[]> {
-        const bots = await getOrDefault(this.gameManagementApiClient.users.getAllBots(this.maxNumberOfBots, true), []);
-        return this.chance.shuffle(bots);
+    async getBotsToJoin(): Promise<UserInfos[]> {
+        const TOTAL_BOTS = 3;
+
+        const bots = await getOrDefault(this.gameManagementApiClient.users.getAllBots(TOTAL_BOTS, true), []);
+
+        if (bots.length > 0) {
+            await post(
+                this.gameManagementApiClient.users.updateBotsJoinRoom({
+                    botIds: bots.map((bot: any) => bot.id),
+                    gameName: this.definition.configName,
+                })
+            );
+        }
+
+        return shuffle(bots);
     }
 
     async getArrangementFromBots(playerName: string): Promise<{ playerId: string; hand: Hand<number[]>; arrangeTime: number }[]> {
-        const botResults = this.gameData.ingame[playerName].result.slice(1, this.gameData.ingame[playerName].result.length);
-        const maxTime = this.gameSettings.durations.wholeRound - this.gameSettings.durations.lockArrange;
+        const duration = this.definition.durations as Duration;
+        const tableData = this.gameData.ingame[playerName];
+
+        const botResults = tableData.otherPlayers.map((bot) => tableData.result[bot.id]);
+        const botArrangeTime = this.definition.durations.wholeRound - tableData.remainingTime;
+        const maxTime = this.definition.durations.wholeRound - duration.lockArrange - botArrangeTime;
 
         const result = await Promise.all(
             botResults.map(async (result) => {
                 const cards = [...result.hand.front, ...result.hand.middle, ...result.hand.back];
                 const hand = await this.getArrangementFromBot(cards);
-                const arrangeTime = this.chance.integer({ min: 0, max: maxTime });
+                const arrangeTime = this.chance.integer({ min: duration.lockArrange, max: maxTime });
                 if (!hand) {
                     return {
                         playerId: result.playerId,
-                        hand: getDefaultHandFromCards(cards),
+                        hand: result.hand,
                         arrangeTime,
                     };
                 }
@@ -86,4 +99,8 @@ export default class ManageBotConsumer {
             back: item.segment_1,
         }));
     };
+
+    async removeBots(botIds: string[]) {
+        await post(this.gameManagementApiClient.users.updateBotsOutRoom({ botIds }));
+    }
 }

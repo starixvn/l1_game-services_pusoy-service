@@ -19,16 +19,17 @@ export default class SubmitArrangementConsumer {
 
     async consume(data: { playerName: string; hand: Hand<number[]>; roundId: number; submit: boolean }) {
         const { playerName, hand, roundId, submit } = data;
+        const tableData = this.gameData.ingame[playerName];
 
-        if (this.gameData.ingame[playerName].submitted) {
+        if (tableData.submitted) {
             return;
         }
 
         const currentRound = await this.roundsRepository.findOne({ id: roundId }).lean().exec();
         if (currentRound && isSameCards(currentRound.result[0].hand, hand)) {
-            this.gameData.ingame[playerName].result[0] = {
+            tableData.result[0] = {
+                ...currentRound.result[0],
                 hand,
-                playerId: currentRound.result[0].playerId,
             };
             if (submit) {
                 currentRound.result[0] = {
@@ -36,9 +37,9 @@ export default class SubmitArrangementConsumer {
                     hand,
                     time: new Date(),
                 };
-                this.gameData.ingame[playerName].submitted = true;
-                this.gameData.ingame[playerName].arrangeTime[0] = this.gameData.ingame[playerName].remainingTime;
-                this.gameData.ingame[playerName].allPlayersSubmittedTime = Math.max(...this.gameData.ingame[playerName].arrangeTime);
+                tableData.submitted = true;
+                const arrangeTime = tableData.otherPlayers.map((bot) => bot.arrangeTime ?? 0);
+                tableData.allPlayersSubmittedTime = Math.min(...arrangeTime, tableData.remainingTime);
                 await this.roundsRepository.updateOne({ id: roundId }, currentRound);
             }
             return;

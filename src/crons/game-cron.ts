@@ -78,7 +78,13 @@ export default class GameCron extends Table.Crons.TableGameCron {
                 const remainingTime = tableInGame.remainingTime;
                 tableInGame.remainingTime--;
 
-                if (remainingTime === durations.lockArrange || tableInGame.isRoundEnded) {
+                tableInGame.otherPlayers.map((bot) => {
+                    if (bot.arrangeTime === remainingTime) {
+                        this.gameStatusPublisher.publishToUser(tableInGame.socketId, { submittedPlayer: bot });
+                    }
+                });
+
+                if (remainingTime === durations.lockArrange || remainingTime > tableInGame.allPlayersSubmittedTime) {
                     tableInGame.remainingTime = durations.lockArrange - 1;
                     await this.settleGameRoundConsumer.settleTable(tableInGame.name);
                 }

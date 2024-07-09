@@ -1,11 +1,62 @@
+import { dealHands } from "./../helpers/deal-hands";
 import { TableProcessBetQueue } from "sc-game-base/src/table/crons";
 import GameData from "../game-data";
 import { RealPlayer } from "../type/real-player";
-import { callAndForget } from "sc-game-base/src/core/game-management-api";
+import GameManagementApiClientFactory, { callAndForget } from "sc-game-base/src/core/game-management-api";
 import { BetPayload } from "../consumers/place-bet-consumer";
+import GameDefinition from "../game-definition";
+import { PlaceBetPublisher } from "sc-game-base/src/core/event-publishers";
+import { logger } from "sc-common";
+import mongoose from "mongoose";
+import BaseMetrics from "sc-game-base/src/core/base-metrics";
+import ManageBotConsumer from "../consumers/manage-bot-consumer";
+import * as Helper from "../helpers";
 
 export default class ProcessBetQueue extends TableProcessBetQueue {
+    bot: ManageBotConsumer;
+    roundsRepository: mongoose.Model<any>;
+
     declare gameData: GameData;
+    constructor({
+        definition,
+        gameData,
+        placeBetPublisher,
+        placeBet,
+        logService,
+        betsRepository,
+        betLogsRepository,
+        roundsRepository,
+        gameManagementApiClientFactory,
+        baseMetrics,
+        bot,
+    }: {
+        definition: GameDefinition;
+        gameData: GameData;
+        placeBetPublisher: PlaceBetPublisher;
+        placeBet: any;
+        logService: typeof logger;
+        betsRepository: mongoose.Model<any>;
+        betLogsRepository: mongoose.Model<any>;
+        roundsRepository: mongoose.Model<any>;
+        gameManagementApiClientFactory: GameManagementApiClientFactory;
+        baseMetrics: BaseMetrics;
+        bot: ManageBotConsumer;
+    }) {
+        super({
+            definition,
+            gameData,
+            placeBetPublisher,
+            placeBet,
+            logService,
+            betsRepository,
+            betLogsRepository,
+            gameManagementApiClientFactory,
+            baseMetrics,
+        });
+
+        this.bot = bot;
+        this.roundsRepository = roundsRepository;
+    }
 
     formatApiBetInfo(payload: BetPayload) {
         return {
@@ -25,6 +76,7 @@ export default class ProcessBetQueue extends TableProcessBetQueue {
         const apiResult = await this.placeBet({ id: player.UID, session: player.session }, betInfo);
         const { response } = apiResult;
 
+        // TODO:
         if (apiResult.isOk) {
             await this.handleSuccessBet(player, response, betInfo.gameRoundId, payload);
         } else {
@@ -66,10 +118,106 @@ export default class ProcessBetQueue extends TableProcessBetQueue {
             this.updateUserStakeLevel(player, balance.minBet, balance.maxBet);
         }
 
-        await this.handleCreateNewRound(player, bet);
+        await this.handleCreateNewRound(player);
     }
 
-    async handleCreateNewRound(player: RealPlayer, payload: BetPayload) {}
+    async handleCreateNewRound(player: RealPlayer) {
+        const tableData = this.gameData.ingame[player.profile.name];
+        tableData.socketId = player.UID;
+        tableData.playerId = player.session.playerId;
+        tableData.allPlayersSubmittedTime = 0;
+        tableData.roundId = this.gameData.roundId;
+        ++this.gameData.roundId;
+
+        await this.addBotsToTableAndPublish(player);
+
+        this.dealHandsAndPublish(player);
+
+        await this.updateHandResultToDatabase(player.profile.name);
+
+        await this.updateBotArrangements(player.profile.name);
+    }
+
+    async addBotsToTableAndPublish(player: RealPlayer) {
+        const tableData = this.gameData.ingame[player.profile.name];
+
+        const bots = await this.bot.getBotsToJoin();
+
+        bots.forEach((bot) => {
+            tableData.otherPlayers.push({
+                id: bot.id,
+                name: bot.name,
+                red: bot.red,
+                avatarId: bot.avatarId,
+            });
+        });
+
+        this.placeBetPublisher.publishToUser(player.UID, { players: tableData.otherPlayers });
+    }
+
+    dealHandsAndPublish(player: RealPlayer) {
+        const tableData = this.gameData.ingame[player.profile.name];
+
+        const numberOfPlayers = tableData.otherPlayers.length + 1;
+
+        const hands = Helper.dealHands(numberOfPlayers);
+
+        const playerHand = {
+            hand: hands[0],
+            playerId: player.session.playerId,
+        };
+
+        tableData.result[player.session.playerId] = playerHand;
+
+        tableData.otherPlayers.forEach((bot, index) => {
+            const botHand = {
+                hand: hands[index + 1],
+                playerId: bot.id,
+            };
+
+            tableData.result[bot.id] = botHand;
+        });
+
+        this.placeBetPublisher.publishToUser(player.UID, { playerHand });
+    }
+
+    async updateHandResultToDatabase(tableName: string) {
+        const tableData = this.gameData.ingame[tableName];
+
+        const filter = { id: tableData.roundId };
+
+        const result = [
+            tableData.result[tableData.playerId],
+            Object.values(tableData.result).filter((res) => res.playerId !== tableData.playerId),
+        ];
+
+        const round = {
+            id: tableData.roundId,
+            result: result,
+            settlementResult: [],
+            time: new Date(),
+            exchangeRateId: this.gameData.exchangeRates.exId,
+        };
+
+        await this.roundsRepository.findOneAndUpdate(filter, round, { upsert: true });
+    }
+
+    async updateBotArrangements(tableName: string) {
+        const tableData = this.gameData.ingame[tableName];
+
+        const botArrangements = await this.bot.getArrangementFromBots(tableName);
+
+        botArrangements.forEach((botHand) => {
+            tableData.result[botHand.playerId] = {
+                hand: botHand.hand,
+                playerId: botHand.playerId,
+            };
+
+            tableData.otherPlayers.filter((bot) => bot.id === botHand.playerId)[0].arrangeTime = botHand.arrangeTime;
+        });
+
+        await this.updateHandResultToDatabase(tableName);
+    }
 
     async upsertBet(player: RealPlayer, roundId: number, bet: BetPayload, rate: number) {
         const newBet = {
