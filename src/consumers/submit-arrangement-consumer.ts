@@ -37,7 +37,8 @@ export default class SubmitArrangementConsumer {
                     time: new Date(),
                 };
                 this.gameData.ingame[playerName].submitted = true;
-                this.gameData.ingame[playerName].arrangeTime[0] = this.gameData.ingame[playerName].remainingTime + 1;
+                this.gameData.ingame[playerName].arrangeTime[0] = this.gameData.ingame[playerName].remainingTime;
+                this.gameData.ingame[playerName].allPlayersSubmittedTime = Math.max(...this.gameData.ingame[playerName].arrangeTime);
                 await this.roundsRepository.updateOne({ id: roundId }, currentRound);
             }
             return;

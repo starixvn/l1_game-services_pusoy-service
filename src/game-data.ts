@@ -19,6 +19,7 @@ export type InGamePlayerData = {
     remainingTime: number;
     result: HandResult[];
     outTable: boolean;
+    allPlayersSubmittedTime: number;
     arrangeTime: number[];
     otherPlayers: string[];
 };

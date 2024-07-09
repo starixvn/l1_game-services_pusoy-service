@@ -41,6 +41,7 @@ export default class GetArrangementFromAIBotConsumer {
             const maxTime = this.gameSettings.durations.wholeRound - this.gameSettings.durations.lockArrange;
             this.gameData.ingame[playerName].arrangeTime[i] =
                 crypto.getRandomValues(new Uint32Array(1))[0] * (maxTime - this.gameData.ingame[playerName].remainingTime);
+            this.gameData.ingame[playerName].allPlayersSubmittedTime = Math.max(...this.gameData.ingame[playerName].arrangeTime);
         }
     }
 

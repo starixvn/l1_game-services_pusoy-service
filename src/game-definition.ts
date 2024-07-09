@@ -61,4 +61,13 @@ export type Duration = {
     lockingBet: number;
     showingResult: number;
     startingRound: number;
+    settleEffect: {
+        crack: number;
+        natural: number;
+        compareHands: number;
+        pusoy: {
+            mini: number;
+            full: number;
+        };
+    };
 };
