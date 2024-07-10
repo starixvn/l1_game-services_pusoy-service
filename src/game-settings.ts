@@ -1,0 +1,21 @@
+export default {
+    id: 1111,
+    name: "Pusoy",
+    durations: {
+        lockArrange: 5,
+        wholeRound: 55,
+        settleEffect: {
+            crack: 2,
+            natural: 2,
+            compareHands: 4,
+            pusoy: {
+                mini: 2,
+                full: 2,
+            },
+        },
+    },
+    numberOfTurnsPerRound: 8,
+    numberOfRoundHistory: 108,
+    historyPageSize: 30,
+    provablyFair: false,
+};
