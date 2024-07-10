@@ -1,5 +1,5 @@
 const appConfigs = {
-    hostingPort: 5002,
+    hostingPort: 5000,
     apiSettings: {
         enabledApi: true,
         apiUrl: "http://l1-game-api-local-service:5000",
