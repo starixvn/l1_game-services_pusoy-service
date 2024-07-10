@@ -75,21 +75,26 @@ export default class GameCron extends Table.Crons.TableGameCron {
 
         await Promise.all(
             Object.values(this.gameData.ingame).map(async (tableInGame) => {
+                const numberOfPlayers = tableInGame.otherPlayers.length + 1;
                 const remainingTime = tableInGame.remainingTime;
+                let showingResultTime = 0;
+
                 tableInGame.remainingTime--;
 
                 tableInGame.otherPlayers.map((bot) => {
                     if (bot.arrangeTime === remainingTime) {
-                        this.gameStatusPublisher.publishToUser(tableInGame.socketId, { submittedPlayer: bot });
+                        this.gameStatusPublisher.publishToUser(tableInGame.userId, { submittedPlayer: bot });
+                        ++tableInGame.numberOfSubmittedHands;
                     }
                 });
 
-                if (remainingTime === durations.lockArrange || remainingTime > tableInGame.allPlayersSubmittedTime) {
+                if (remainingTime === durations.lockArrange || tableInGame.numberOfSubmittedHands === numberOfPlayers) {
                     tableInGame.remainingTime = durations.lockArrange - 1;
-                    await this.settleGameRoundConsumer.settleTable(tableInGame.name);
+                    showingResultTime -= await this.settleGameRoundConsumer.settleTable(tableInGame.name);
+                    this.gameStatusPublisher.publishToUser(tableInGame.userId, { showingResultTime });
                 }
 
-                if (remainingTime === 0) {
+                if (remainingTime === showingResultTime) {
                     tableInGame.remainingTime = durations.wholeRound;
                 }
             })

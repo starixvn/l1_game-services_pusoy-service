@@ -14,15 +14,14 @@ export type InGamePlayerData = {
     betProcessing: boolean;
     ownBets: any;
     roundId: number;
-    submitted: boolean;
-    isRoundEnded: boolean;
+    realPlayerSubmitted: boolean;
     remainingTime: number;
     result: { [name: string]: HandResult };
     outTable: boolean;
-    allPlayersSubmittedTime: number;
     otherPlayers: BotData[];
     playerId: string;
-    socketId: string;
+    userId: string;
+    numberOfSubmittedHands: number;
 };
 
 export type InGameData = {

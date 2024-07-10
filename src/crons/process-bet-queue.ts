@@ -77,7 +77,7 @@ export default class ProcessBetQueue extends TableProcessBetQueue {
         const { response } = apiResult;
 
         // TODO:
-        if (apiResult.isOk) {
+        if (apiResult.isOk || true) {
             await this.handleSuccessBet(player, response, betInfo.gameRoundId, payload);
         } else {
             this.handleFailedBet(player, response, payload);
@@ -123,9 +123,8 @@ export default class ProcessBetQueue extends TableProcessBetQueue {
 
     async handleCreateNewRound(player: RealPlayer) {
         const tableData = this.gameData.ingame[player.profile.name];
-        tableData.socketId = player.UID;
+        tableData.userId = player.UID;
         tableData.playerId = player.session.playerId;
-        tableData.allPlayersSubmittedTime = 0;
         tableData.roundId = this.gameData.roundId;
         ++this.gameData.roundId;
 
