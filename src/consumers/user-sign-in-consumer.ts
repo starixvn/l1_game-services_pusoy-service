@@ -24,6 +24,9 @@ export default class UserSignInConsumer extends BaseEventConsumers.UserSignInCon
     }
 
     async consume(socketClient: Socket, payload: any) {
+        console.log(`signin payload: `);
+        console.log(payload);
+
         if (!payload) {
             this.handleUnauthorizedSignIn(socketClient);
 
@@ -38,6 +41,9 @@ export default class UserSignInConsumer extends BaseEventConsumers.UserSignInCon
 
         const signInGameResult = await signInGame(this.appConfigs.userServiceSettings.url, params);
 
+        console.log(`signInGameResult: `);
+        console.log(signInGameResult);
+
         const userSession = {
             ...signInGameResult,
             userId: signInGameResult.id,
@@ -45,6 +51,9 @@ export default class UserSignInConsumer extends BaseEventConsumers.UserSignInCon
         };
 
         const userInfo = await getOrDefault(this.gameManagementApiClient.users.getUserInfo(userSession.userId), null);
+
+        console.log(`userInfo: `);
+        console.log(userInfo);
 
         if (!userInfo) {
             this.handleUnauthorizedSignIn(socketClient);
