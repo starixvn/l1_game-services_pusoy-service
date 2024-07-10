@@ -1,7 +1,9 @@
 import { TableGameData } from "sc-game-base/src/table";
 import { HandResult } from "./models/rounds";
+import { RealPlayer } from "./type/real-player";
 export default class GameData extends TableGameData {
     declare ingame: InGameData;
+    declare realPlayers: { [name: string]: RealPlayer };
 }
 
 export type InGamePlayerData = {

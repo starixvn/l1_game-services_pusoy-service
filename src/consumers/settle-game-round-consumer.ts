@@ -1,7 +1,7 @@
 import { IRound } from "../models/rounds";
 import mongoose, { Model } from "mongoose";
 import { Hand, Natural, Settlement } from "@rd/pusoy-rules";
-import GameDefinition, { GameSettings } from "../game-definition";
+import GameDefinition, { Duration } from "../game-definition";
 import GameData from "../game-data";
 import { Core } from "sc-game-base";
 import { RoundResultPublisher, UserBetResultPublisher } from "sc-game-base/src/core/event-publishers";
@@ -9,7 +9,6 @@ import GameManagementApiClientFactory from "sc-game-base/src/core/game-managemen
 
 export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.SettleGameRoundConsumer {
     declare roundsRepository: mongoose.Model<IRound>;
-    gameSettings: GameSettings;
     declare gameData: GameData;
     declare definition: GameDefinition;
 
@@ -22,7 +21,6 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
         roundsRepository,
         betsRepository,
         gameManagementApiClientFactory,
-        gameSettings,
     }: {
         definition: GameDefinition;
         gameData: GameData;
@@ -32,7 +30,6 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
         roundsRepository: Model<any>;
         betsRepository: Model<any>;
         gameManagementApiClientFactory: GameManagementApiClientFactory;
-        gameSettings: GameSettings;
     }) {
         super({
             definition,
@@ -44,11 +41,10 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
             betsRepository,
             gameManagementApiClientFactory,
         });
-
-        this.gameSettings = gameSettings;
     }
 
     async settleTable(playerName: string) {
+        const durations = this.definition.durations as Duration;
         const betTrack = this.gameData.ingame[playerName].betTracks;
         if (!betTrack) {
             return 0;
@@ -81,13 +77,13 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
                 playerId: playerIds[i],
             });
             if (settlement[i].natural.name !== Natural.Unknown) {
-                settleEffectDuration.natural = this.gameSettings.durations.settleEffect.natural;
+                settleEffectDuration.natural = durations.settleEffect.natural;
             }
             if (settlement[i].pusoy.full > 0) {
-                settleEffectDuration.fullPusoy = this.gameSettings.durations.settleEffect.pusoy.full;
+                settleEffectDuration.fullPusoy = durations.settleEffect.pusoy.full;
             }
             if (settlement[i].crack.isCrack) {
-                settleEffectDuration.crack = this.gameSettings.durations.settleEffect.crack;
+                settleEffectDuration.crack = durations.settleEffect.crack;
             }
             if (settlement[i].pusoy.mini) {
                 Object.entries(settlement[i].pusoy.mini).forEach(([key, value]) => {
@@ -98,7 +94,7 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
             }
         }
 
-        settleEffectDuration.mini = miniPusoySet.size * this.gameSettings.durations.settleEffect.pusoy.mini;
+        settleEffectDuration.mini = miniPusoySet.size * durations.settleEffect.pusoy.mini;
         const totalSettleEffectDuration = Object.values(settleEffectDuration).reduce((a, b) => a + b, 0);
 
         await this.roundsRepository.updateOne({ id: betTrack.roundId }, { settlementResult: settlementResult }).exec();

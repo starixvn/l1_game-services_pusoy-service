@@ -24,21 +24,21 @@ const appConfigs = {
     },
     enabledLogs: true,
     database: {
-        url: "mongodb://lmn_backend:LmnBackend@10.10.50.12:39100,10.10.50.13:39100,10.10.50.14:39100/",
+        url: "mongodb://mongo:27017",
         options: {
-            dbName: "minigame",
+            dbName: "pusoy-service-dev-db",
             useNewUrlParser: true,
             useUnifiedTopology: true,
             auto_reconnect: true,
         },
     },
     sentry: {
-        sentryUrl: "https://13f39b8359404ed5aec23655e64ccf78@sentry.lumigame.com/2",
+        sentryUrl: "",
         logIdentifier: "Pusoy",
-        env: "LOCAL",
+        env: "DEV",
     },
     authenticateSettings: {
-        url: "http://l1-auth-api-local-service:5000",
+        url: "https://auth.lumigame.com",
         id: "game-services",
         secret: "gameservices@20luminet&",
         requestTimeout: 10000,
@@ -46,7 +46,7 @@ const appConfigs = {
         audiences: ["api", "admin-api"],
     },
     userServiceSettings: {
-        url: "http://l1-user-service-local-service:5000",
+        url: "http://127.0.0.1:5000",
     },
     adminSecretKey: "asWDEerfOIdgsdqRTFabvmgh",
     metrics: {

@@ -14,7 +14,6 @@ export default {
             },
         },
     },
-    numberOfTurnsPerRound: 8,
     numberOfRoundHistory: 108,
     historyPageSize: 30,
     provablyFair: false,

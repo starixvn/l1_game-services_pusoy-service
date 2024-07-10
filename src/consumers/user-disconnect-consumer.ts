@@ -13,8 +13,8 @@ export default class UserDisconnectConsumer extends Core.BaseEventConsumers.User
         const realPlayer = this.gameData.realPlayers[socketClient.id];
 
         if (realPlayer) {
-            this.gameData.ingame[realPlayer.name].outTable = true;
-            delete this.gameData.players[realPlayer.UID];
+            this.gameData.ingame[realPlayer.profile.name].outTable = true;
+            delete this.gameData.players[socketClient.id];
         }
 
         super.consume(socketClient);

@@ -42,7 +42,6 @@ export default class InGameConsumer extends TableInGameConsumer {
 
         return {
             remainingTime: roundData.remainingTime,
-            isRoundEnded: roundData.isRoundEnded,
             roundId: roundData.roundId,
             hand: roundData.result[realPlayer.session.playerId],
         };
