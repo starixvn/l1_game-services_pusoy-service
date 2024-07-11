@@ -8,8 +8,11 @@ export default class InGameConsumer extends TableInGameConsumer {
         const { gameConfigs } = this.gameData;
         const disabled = !gameConfigs || !gameConfigs.enabled;
 
-        if (disabled) {
+        // TODO: check
+        if (disabled && false) {
             realPlayer.socketClient.emit(this.definition.name, { um: disabled, um_message: this.gameData.umMessages });
+        } else {
+            this.initTable(realPlayer);
         }
 
         const payload = await this.buildPayload(realPlayer);
@@ -45,5 +48,11 @@ export default class InGameConsumer extends TableInGameConsumer {
             roundId: roundData.roundId,
             hand: roundData.result[realPlayer.session.playerId],
         };
+    }
+
+    initTable(realPlayer: RealPlayer) {
+        const tableData = this.gameData.ingame[realPlayer.profile.name];
+        tableData.userId = realPlayer.UID;
+        tableData.playerId = realPlayer.session.playerId;
     }
 }
