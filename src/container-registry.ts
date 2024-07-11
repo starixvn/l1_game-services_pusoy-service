@@ -13,6 +13,7 @@ import {
 } from "./consumers";
 import { betLogs, bets, rounds, tmpBets } from "./models";
 import { BaseEventConsumers } from "sc-game-base/src/core";
+import SocketRouter from "./router/socket-router";
 
 export default class ContainerRegistry extends Table.TableContainerRegistry {
     register(appConfigs: any, definition: any, gameData: any): AwilixContainer<any> {
@@ -52,6 +53,13 @@ export default class ContainerRegistry extends Table.TableContainerRegistry {
             settleGameRoundConsumer: asClass(SettleGameRoundConsumer).singleton().proxy(),
             bot: asClass(ManageBotConsumer).singleton().proxy(),
             submitArrangementConsumer: asClass(SubmitArrangementConsumer).singleton(),
+        });
+    }
+
+    registerRouters() {
+        super.registerRouters();
+        this.container.register({
+            socketRouter: asClass(SocketRouter).proxy(),
         });
     }
 }
