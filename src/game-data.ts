@@ -10,20 +10,19 @@ export type InGamePlayerData = {
     name: string;
     currency: string;
     system: string;
-    betTracks: any;
+    betTracks: { [name: string]: RoundData };
     betQueue: any;
     operatorId: string;
     betProcessing: boolean;
     ownBets: any;
     roundId: number;
-    realPlayerSubmitted: boolean;
     remainingTime: number;
-    result: { [name: string]: HandResult };
-    outTable: boolean;
-    otherPlayers: BotData[];
+    isActive: boolean;
     playerId: string;
     userId: string;
-    numberOfSubmittedHands: number;
+    isRoundEnded: boolean;
+    numberOfBots: number;
+    canBotLeave: boolean;
 };
 
 export type InGameData = {
@@ -36,4 +35,12 @@ export type BotData = {
     red: number;
     avatarId: number;
     arrangeTime?: number;
+};
+
+export type RoundData = {
+    id: number;
+    result: { [name: string]: HandResult };
+    otherPlayers: BotData[];
+    numberOfSubmittedHands: number;
+    realPlayerSubmitted: boolean;
 };

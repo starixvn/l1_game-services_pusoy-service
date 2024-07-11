@@ -41,11 +41,12 @@ export default class InGameConsumer extends TableInGameConsumer {
 
     getCurrentRoundData(realPlayer: RealPlayer) {
         const playerName = realPlayer.profile.name;
-        const roundData = this.gameData.ingame[playerName];
+        const tableData = this.gameData.ingame[playerName];
+        const roundData = tableData.betTracks[tableData.roundId];
 
         return {
-            remainingTime: roundData.remainingTime,
-            roundId: roundData.roundId,
+            remainingTime: tableData.remainingTime,
+            roundId: tableData.roundId,
             hand: roundData.result[realPlayer.session.playerId],
         };
     }
@@ -54,5 +55,6 @@ export default class InGameConsumer extends TableInGameConsumer {
         const tableData = this.gameData.ingame[realPlayer.profile.name];
         tableData.userId = realPlayer.UID;
         tableData.playerId = realPlayer.session.playerId;
+        tableData.numberOfBots = tableData?.numberOfBots ?? 0;
     }
 }

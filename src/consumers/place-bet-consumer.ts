@@ -4,9 +4,8 @@ import GameDefinition from "../game-definition";
 import { RealPlayer } from "../type/real-player";
 
 export type BetPayload = {
-    stackLevel: number;
-    amount: number;
     roundId: number;
+    amount: number;
     m: any;
     receivedTime: Date;
     mode: any;
@@ -20,29 +19,38 @@ export default class PlaceBetConsumer extends BaseEventConsumers.PlaceBetConsume
 
     consume(realPlayer: RealPlayer, payload: BetPayload): void {
         const playerName = realPlayer.profile.name;
+        const tableData = this.gameData.ingame[playerName];
+        const isPlaying = tableData?.isRoundEnded ?? false;
 
-        const betAmount = payload.stackLevel ? 1000 : payload.stackLevel * this.gameData.gameConfigs.maxbet;
+        if (!this.gameData.disabled && !isPlaying) {
+            const betAmount = payload.amount ? 0 : payload.amount * this.gameData.gameConfigs.maxbet;
 
-        Object.assign(payload, {
-            amount: betAmount,
-            roundId: +payload.roundId || this.gameData.ingame[playerName].roundId,
-            mode: payload.m ?? this.DisplayMode.Landscape,
-            receivedTime: new Date(),
-        });
+            Object.assign(payload, {
+                amount: betAmount,
+                mode: payload.m ?? this.DisplayMode.Landscape,
+                receivedTime: new Date(),
+            });
 
-        if (!this.gameData.ingame[playerName]) {
-            const newPlayer = {
-                name: playerName,
-                currency: realPlayer.session.currencyName,
-                system: realPlayer.session.system,
-                betTracks: {},
-                betQueue: [],
-                operatorId: realPlayer.session.operatorId,
-            };
+            if (!tableData) {
+                const newPlayer = {
+                    name: playerName,
+                    currency: realPlayer.session.currencyName,
+                    system: realPlayer.session.system,
+                    betTracks: {},
+                    betQueue: [],
+                    operatorId: realPlayer.session.operatorId,
+                };
 
-            this.gameData.ingame[playerName] = newPlayer as InGamePlayerData;
+                this.gameData.ingame[playerName] = newPlayer as InGamePlayerData;
+            }
+
+            this.gameData.ingame[playerName].betQueue.push({ player: realPlayer, payload });
+        } else {
+            this.publisher.publishToUser(realPlayer.UID, {
+                um: this.gameData.disabled,
+                um_message: this.gameData.umMessages,
+                isPlaying,
+            });
         }
-
-        this.gameData.ingame[playerName].betQueue.push({ player: realPlayer, payload });
     }
 }

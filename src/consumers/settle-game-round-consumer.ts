@@ -45,12 +45,12 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
 
     async settleTable(playerName: string) {
         const durations = this.definition.durations as Duration;
-        const betTrack = this.gameData.ingame[playerName].betTracks;
-        if (!betTrack) {
+        const tableData = this.gameData.ingame[playerName];
+        if (!tableData) {
             return 0;
         }
 
-        const round = await this.roundsRepository.findOne({ id: betTrack.roundId }).lean().exec();
+        const round = await this.roundsRepository.findOne({ id: tableData.roundId }).lean().exec();
         if (!round) {
             return 0;
         }
@@ -97,9 +97,9 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
         settleEffectDuration.mini = miniPusoySet.size * durations.settleEffect.pusoy.mini;
         const totalSettleEffectDuration = Object.values(settleEffectDuration).reduce((a, b) => a + b, 0);
 
-        await this.roundsRepository.updateOne({ id: betTrack.roundId }, { settlementResult: settlementResult }).exec();
+        await this.roundsRepository.updateOne({ id: tableData.roundId }, { settlementResult: settlementResult }).exec();
 
-        this.roundResultPublisher.publishRoundResult({ roundId: betTrack.roundId, settlementResult: settlement });
+        this.roundResultPublisher.publishRoundResult({ roundId: tableData.roundId, settlementResult: settlement });
 
         return totalSettleEffectDuration;
     }

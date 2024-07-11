@@ -25,24 +25,31 @@ export default class SubmitArrangementConsumer {
     }
 
     async consume(data: SubmitPayload) {
-        const { playerName, hand, roundId, submit, playerId } = data;
-        const tableData = this.gameData.ingame[playerName];
+        const tableData = this.gameData.ingame[data.playerName];
+        const currentRound = tableData.betTracks[data.roundId];
+        const isValidSubmit = this.isValidSubmit(data);
 
-        const currentRound = await this.roundsRepository.findOne({ id: roundId }).lean().exec();
+        if (isValidSubmit) {
+            currentRound.result[data.playerId].hand = data.hand;
 
-        if (!tableData?.realPlayerSubmitted && currentRound && isSameCards(currentRound.result[0].hand, hand)) {
-            tableData.result[playerId].hand = currentRound.result[0].hand;
+            if (data.submit) {
+                currentRound.realPlayerSubmitted = true;
+                ++currentRound.numberOfSubmittedHands;
 
-            if (submit) {
-                currentRound.result[0] = {
-                    ...currentRound.result[0],
-                    hand,
-                    time: new Date(),
-                };
-                tableData.realPlayerSubmitted = true;
-                ++tableData.numberOfSubmittedHands;
-                await this.roundsRepository.updateOne({ id: roundId }, currentRound);
+                // await this.updateHandResultToDatabase(tableName);
             }
         }
+    }
+
+    isValidSubmit(data: SubmitPayload) {
+        const tableData = this.gameData.ingame[data.playerName];
+        const currentRound = tableData?.betTracks[data.roundId];
+
+        return (
+            data.roundId === tableData.roundId &&
+            currentRound &&
+            !currentRound.realPlayerSubmitted &&
+            isSameCards(currentRound.result[data.playerId].hand, data.hand)
+        );
     }
 }

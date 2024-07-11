@@ -1,5 +1,5 @@
 import GameManagementApiClientFactory, { getOrDefault, post } from "sc-game-base/src/core/game-management-api";
-import { UserInfos, gameManagementClient } from "sc-game-management-client";
+import { UserInfos } from "sc-game-management-client";
 import GameData from "../game-data";
 import { shuffle } from "../helpers";
 import appConfigs from "../app-configs";
@@ -7,26 +7,15 @@ import { Hand } from "@rd/pusoy-rules";
 import axios from "axios";
 import GameDefinition, { Duration } from "../game-definition";
 import Chance from "chance";
+import { BaseBot } from "sc-game-base/src/core/crons";
 
-export default class ManageBotConsumer {
-    gameManagementApiClient: gameManagementClient;
+export default class Bot extends BaseBot {
     declare gameData: GameData;
     declare definition: GameDefinition;
     chance: Chance.Chance;
 
-    constructor({
-        gameManagementApiClient,
-        gameData,
-        definition,
-    }: {
-        gameManagementApiClient: GameManagementApiClientFactory;
-        maxNumberOfBots: number;
-        gameData: GameData;
-        definition: GameDefinition;
-    }) {
-        this.gameManagementApiClient = gameManagementApiClient.instance();
-        this.gameData = gameData;
-        this.definition = definition;
+    constructor(gameManagementApiClientFactory: GameManagementApiClientFactory, gameData: GameData, definition: GameDefinition) {
+        super(definition, gameData, gameManagementApiClientFactory);
         this.chance = new Chance();
     }
 
@@ -47,11 +36,15 @@ export default class ManageBotConsumer {
         return shuffle(bots);
     }
 
-    async getArrangementFromBots(playerName: string): Promise<{ playerId: string; hand: Hand<number[]>; arrangeTime: number }[]> {
+    async getArrangementFromBots(
+        playerName: string,
+        roundId: number
+    ): Promise<{ playerId: string; hand: Hand<number[]>; arrangeTime: number }[]> {
         const duration = this.definition.durations as Duration;
         const tableData = this.gameData.ingame[playerName];
+        const currentRound = tableData.betTracks[roundId];
 
-        const botResults = tableData.otherPlayers.map((bot) => tableData.result[bot.id]);
+        const botResults = currentRound.otherPlayers.map((bot) => currentRound.result[bot.id]);
         const botArrangeTime = this.definition.durations.wholeRound - tableData.remainingTime;
         const maxTime = this.definition.durations.wholeRound - duration.lockArrange - botArrangeTime;
 

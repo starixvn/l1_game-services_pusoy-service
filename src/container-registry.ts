@@ -4,7 +4,6 @@ import GameCron from "./crons/game-cron";
 import ProcessBetQueue from "./crons/process-bet-queue";
 import {
     InGameConsumer,
-    ManageBotConsumer,
     PlaceBetConsumer,
     SettleGameRoundConsumer,
     SubmitArrangementConsumer,
@@ -12,7 +11,7 @@ import {
     UserSignInConsumer,
 } from "./consumers";
 import { betLogs, bets, rounds, tmpBets } from "./models";
-import { BaseEventConsumers } from "sc-game-base/src/core";
+import Bot from "./crons/bot";
 import SocketRouter from "./router/socket-router";
 
 export default class ContainerRegistry extends Table.TableContainerRegistry {
@@ -51,7 +50,7 @@ export default class ContainerRegistry extends Table.TableContainerRegistry {
             inGameConsumer: asClass(InGameConsumer).singleton(),
             placeBetConsumer: asClass(PlaceBetConsumer).singleton(),
             settleGameRoundConsumer: asClass(SettleGameRoundConsumer).singleton().proxy(),
-            bot: asClass(ManageBotConsumer).singleton().proxy(),
+            bot: asClass(Bot).singleton(),
             submitArrangementConsumer: asClass(SubmitArrangementConsumer).singleton(),
         });
     }
