@@ -1,32 +1,15 @@
-import { BaseEventConsumers, BaseEventPublishers } from "sc-game-base/src/core";
 import GameDefinition from "../game-definition";
 import GameData from "../game-data";
-import { PlayGamePermissionValidator } from "sc-game-base/src/core/validators";
-import GameManagementApiClientFactory, { getOrDefault } from "sc-game-base/src/core/game-management-api";
+import { getOrDefault } from "sc-game-base/src/core/game-management-api";
 import { Socket } from "socket.io";
 import { signInGame } from "sc-game-base/src/core/helpers/user-service-helpers";
+import { TableUserSignInConsumer } from "sc-game-base/src/table/event-consumers";
 
-export default class UserSignInConsumer extends BaseEventConsumers.UserSignInConsumer {
-    definition: GameDefinition;
+export default class UserSignInConsumer extends TableUserSignInConsumer {
+    declare definition: GameDefinition;
     declare gameData: GameData;
 
-    constructor(
-        definition: GameDefinition,
-        gameData: GameData,
-        userSignInPublisher: BaseEventPublishers.UserSignInPublisher,
-        playGamePermissionValidator: PlayGamePermissionValidator,
-        appConfigs: any,
-        gameManagementApiClientFactory: GameManagementApiClientFactory
-    ) {
-        super(gameData, userSignInPublisher, playGamePermissionValidator, appConfigs, gameManagementApiClientFactory);
-
-        this.definition = definition;
-    }
-
     async consume(socketClient: Socket, payload: any) {
-        console.log(`signin payload: `);
-        console.log(payload);
-
         if (!payload) {
             this.handleUnauthorizedSignIn(socketClient);
 
@@ -41,9 +24,6 @@ export default class UserSignInConsumer extends BaseEventConsumers.UserSignInCon
 
         const signInGameResult = await signInGame(this.appConfigs.userServiceSettings.url, params);
 
-        console.log(`signInGameResult: `);
-        console.log(signInGameResult);
-
         const userSession = {
             ...signInGameResult,
             userId: signInGameResult.id,
@@ -51,9 +31,6 @@ export default class UserSignInConsumer extends BaseEventConsumers.UserSignInCon
         };
 
         const userInfo = await getOrDefault(this.gameManagementApiClient.users.getUserInfo(userSession.userId), null);
-
-        console.log(`userInfo: `);
-        console.log(userInfo);
 
         if (!userInfo) {
             this.handleUnauthorizedSignIn(socketClient);
