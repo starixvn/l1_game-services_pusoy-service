@@ -3,7 +3,7 @@ import { Table, Core } from "sc-game-base";
 import GameManagementApiClientFactory from "sc-game-base/src/core/game-management-api";
 import { logger } from "sc-common";
 import GameDefinition, { Duration } from "../game-definition";
-import GameData from "../game-data";
+import GameData, { TableInGame } from "../game-data";
 import { ProvablyFairConsumer, UnsettledRoundConsumer } from "sc-game-base/src/core/event-consumers";
 import SettleGameConsumer from "../consumers/settle-game-round-consumer";
 import Bot from "../crons/bot";
@@ -74,52 +74,69 @@ export default class GameCron extends Table.Crons.TableGameCron {
 
     async proceed() {
         const durations = this.definition.durations as Duration;
+        const remainingTime = this.gameData.remainingTime;
 
-        if (this.gameData.remainingTime === durations.wholeRound) {
+        if (remainingTime === durations.wholeRound) {
             await this.checkGameStatus();
-            !this.gameData.disabled;
+        }
+
+        this.gameData.remainingTime--;
+
+        if (remainingTime === 0) {
+            this.gameData.remainingTime = durations.wholeRound;
         }
 
         await Promise.all(
             Object.values(this.gameData.ingame).map(async (tableInGame) => {
-                const roundId = tableInGame.roundId;
-                const currentRound = tableInGame.betTracks[roundId];
-                const numberOfPlayers = currentRound.otherPlayers.length + 1;
-                const remainingTime = tableInGame.remainingTime;
-                let showingResultTime = 0;
-
-                tableInGame.remainingTime--;
-
-                currentRound.otherPlayers.map((bot) => {
-                    if (bot.arrangeTime === remainingTime) {
-                        this.gameStatusPublisher.publishToUser(tableInGame.userId, { submittedPlayer: bot });
-                        ++currentRound.numberOfSubmittedHands;
-                    }
-                });
-
-                if (remainingTime === durations.lockArrange || currentRound.numberOfSubmittedHands === numberOfPlayers) {
-                    tableInGame.remainingTime = durations.lockArrange - 1;
-                    showingResultTime -= await this.settleGameRoundConsumer.settleTable(tableInGame.name);
-                    this.gameStatusPublisher.publishToUser(tableInGame.userId, { showingResultTime });
-                    tableInGame.isRoundEnded = true;
-                    tableInGame.canBotLeave = true;
+                if (tableInGame.botsInTable.length === 0) {
+                    this.addBotsToTableAndPublish(tableInGame);
                 }
 
-                if (remainingTime === showingResultTime) {
-                    tableInGame.remainingTime = durations.wholeRound;
-                }
+                await this.proceedTableInGame(tableInGame, durations);
             })
         );
     }
 
-    async addBotsToTableAndPublish(tableName: string, roundId: number) {
-        const tableData = this.gameData.ingame[tableName];
-        const currentRound = tableData.betTracks[roundId];
+    async proceedTableInGame(tableInGame: TableInGame, durations: Duration) {
+        const roundId = tableInGame.roundId;
+        const currentRound = tableInGame.betTracks[roundId];
 
+        if (roundId <= 0 || !currentRound) {
+            return;
+        }
+
+        const numberOfPlayers = currentRound.otherPlayers.length + 1;
+        const remainingTime = tableInGame.remainingTime;
+        let showingResultTime = 0;
+
+        tableInGame.remainingTime--;
+
+        currentRound.otherPlayers.forEach((bot) => {
+            if (bot.arrangeTime === remainingTime) {
+                this.gameStatusPublisher.publishToUser(tableInGame.userId, { submittedPlayer: bot });
+                currentRound.numberOfSubmittedHands++;
+            }
+        });
+
+        if (remainingTime === durations.lockArrange || currentRound.numberOfSubmittedHands === numberOfPlayers) {
+            tableInGame.remainingTime = durations.lockArrange - 1;
+            showingResultTime -= await this.settleGameRoundConsumer.settleTable(tableInGame.name);
+            this.gameStatusPublisher.publishToUser(tableInGame.userId, { showingResultTime });
+            this.removeBotsFromTable(tableInGame);
+            tableInGame.isRoundEnded = true;
+            tableInGame.canBotLeave = true;
+        }
+
+        if (remainingTime === showingResultTime) {
+            tableInGame.remainingTime = durations.wholeRound;
+        }
+    }
+
+    async addBotsToTableAndPublish(tableInGame: TableInGame) {
         const bots = await this.bot.getBotsToJoin();
 
         bots.forEach((bot) => {
-            currentRound.otherPlayers.push({
+            tableInGame.botsInTable.push({
                 id: bot.id,
                 name: bot.name,
                 red: bot.red,
@@ -127,7 +144,11 @@ export default class GameCron extends Table.Crons.TableGameCron {
             });
         });
 
-        this.gameStatusPublisher.publishToUser(tableData.userId, { players: currentRound.otherPlayers });
+        this.gameStatusPublisher.publishToUser(tableInGame.userId, { otherPlayers: tableInGame.botsInTable });
+    }
+
+    removeBotsFromTable(tableInGame: TableInGame) {
+        tableInGame.botsInTable = [];
     }
 
     async updateBotArrangements(tableName: string, roundId: number) {

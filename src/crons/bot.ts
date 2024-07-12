@@ -8,6 +8,7 @@ import axios from "axios";
 import GameDefinition, { Duration } from "../game-definition";
 import Chance from "chance";
 import { BaseBot } from "sc-game-base/src/core/crons";
+import { NUMBER_OF_BOTS } from "../constants";
 
 export default class Bot extends BaseBot {
     declare gameData: GameData;
@@ -20,9 +21,7 @@ export default class Bot extends BaseBot {
     }
 
     async getBotsToJoin(): Promise<UserInfos[]> {
-        const TOTAL_BOTS = 3;
-
-        const bots = await getOrDefault(this.gameManagementApiClient.users.getAllBots(TOTAL_BOTS, true), []);
+        const bots = await getOrDefault(this.gameManagementApiClient.users.getAllBots(NUMBER_OF_BOTS, true), []);
 
         if (bots.length > 0) {
             await post(

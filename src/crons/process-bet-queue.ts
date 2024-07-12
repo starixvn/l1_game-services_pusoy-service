@@ -1,4 +1,3 @@
-import { dealHands } from "./../helpers/deal-hands";
 import { TableProcessBetQueue } from "sc-game-base/src/table/crons";
 import GameData from "../game-data";
 import { RealPlayer } from "../type/real-player";
@@ -74,7 +73,7 @@ export default class ProcessBetQueue extends TableProcessBetQueue {
     async proceedBet(player: RealPlayer, payload: BetPayload) {
         const tableData = this.gameData.ingame[player.profile.name];
 
-        if (tableData.numberOfBots < 1) {
+        if (!tableData.botsInTable || tableData.botsInTable.length < 1) {
             tableData.betQueue.push({ player, payload });
             return;
         }
@@ -113,13 +112,13 @@ export default class ProcessBetQueue extends TableProcessBetQueue {
 
         await this.upsertBet(player, roundId, bet, rate);
 
-        callAndForget(
-            this.gameManagementApiClient.users.setBalanceAndDecreaseScoins({
-                id: player.UID,
-                balance: balance.red,
-                deductionscoins: 0,
-            })
-        );
+        // callAndForget(
+        //     this.gameManagementApiClient.users.setBalanceAndDecreaseScoins({
+        //         id: player.UID,
+        //         balance: balance.red,
+        //         deductionscoins: 0,
+        //     })
+        // );
 
         this.notifyPlacingBetResult(player, balance, bet, rate);
 
@@ -132,15 +131,11 @@ export default class ProcessBetQueue extends TableProcessBetQueue {
 
     initNewRound(player: RealPlayer, payload: BetPayload) {
         const tableData = this.gameData.ingame[player.profile.name];
-        const currentRound = tableData.betTracks[tableData.roundId];
 
         tableData.userId = player.UID;
         tableData.playerId = player.session.playerId;
         tableData.roundId = this.gameData.roundId;
         tableData.canBotLeave = false;
-
-        currentRound.id = this.gameData.roundId;
-        currentRound.numberOfSubmittedHands = 0;
 
         payload.roundId = this.gameData.roundId;
 
@@ -148,6 +143,16 @@ export default class ProcessBetQueue extends TableProcessBetQueue {
     }
 
     async handleStartNewRound(player: RealPlayer, roundId: number) {
+        const tableData = this.gameData.ingame[player.profile.name];
+
+        tableData.betTracks[roundId] = {
+            id: roundId,
+            otherPlayers: [...tableData.botsInTable],
+            result: {} as any,
+            numberOfSubmittedHands: 0,
+            realPlayerSubmitted: false,
+        };
+
         this.dealHandsAndPublish(player, roundId);
 
         await this.updateHandResultToDatabase(player.profile.name, roundId);
@@ -156,6 +161,7 @@ export default class ProcessBetQueue extends TableProcessBetQueue {
     dealHandsAndPublish(player: RealPlayer, roundId: number) {
         const tableData = this.gameData.ingame[player.profile.name];
         const currentRound = tableData.betTracks[roundId];
+
         const numberOfPlayers = currentRound.otherPlayers.length + 1;
 
         const hands = Helper.dealHands(numberOfPlayers);

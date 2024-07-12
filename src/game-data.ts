@@ -6,11 +6,11 @@ export default class GameData extends TableGameData {
     declare realPlayers: { [name: string]: RealPlayer };
 }
 
-export type InGamePlayerData = {
+export type TableInGame = {
     name: string;
     currency: string;
     system: string;
-    betTracks: { [name: string]: RoundData };
+    betTracks: { [name: string]: RoundOfTable };
     betQueue: any;
     operatorId: string;
     betProcessing: boolean;
@@ -21,15 +21,15 @@ export type InGamePlayerData = {
     playerId: string;
     userId: string;
     isRoundEnded: boolean;
-    numberOfBots: number;
     canBotLeave: boolean;
+    botsInTable: BotInRound[];
 };
 
 export type InGameData = {
-    [name: string]: InGamePlayerData;
+    [name: string]: TableInGame;
 };
 
-export type BotData = {
+export type BotInRound = {
     id: string;
     name: string;
     red: number;
@@ -37,10 +37,10 @@ export type BotData = {
     arrangeTime?: number;
 };
 
-export type RoundData = {
+export type RoundOfTable = {
     id: number;
     result: { [name: string]: HandResult };
-    otherPlayers: BotData[];
+    otherPlayers: BotInRound[];
     numberOfSubmittedHands: number;
     realPlayerSubmitted: boolean;
 };

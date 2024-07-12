@@ -1,5 +1,5 @@
 export default {
-    id: 1111,
+    id: 94,
     name: "Pusoy",
     durations: {
         lockArrange: 5,

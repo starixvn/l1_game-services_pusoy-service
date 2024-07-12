@@ -1,5 +1,5 @@
 import { TableInGameConsumer } from "sc-game-base/src/table/event-consumers";
-import GameData, { InGamePlayerData } from "../game-data";
+import GameData, { TableInGame } from "../game-data";
 import { RealPlayer } from "../type/real-player";
 
 export default class InGameConsumer extends TableInGameConsumer {
@@ -9,7 +9,7 @@ export default class InGameConsumer extends TableInGameConsumer {
         const disabled = !gameConfigs || !gameConfigs.enabled;
 
         // TODO: check
-        if (disabled && false) {
+        if (disabled) {
             realPlayer.socketClient.emit(this.definition.name, { um: disabled, um_message: this.gameData.umMessages });
         } else {
             this.initOrUpdateTable(realPlayer);
@@ -26,8 +26,10 @@ export default class InGameConsumer extends TableInGameConsumer {
         const { session } = realPlayer;
         const rate = exchangeRates.code[session.currencyCode] * session.multiplier;
         const configs = this.getGameConfigs(session.currencyGroupId);
+        const roundData = this.getCurrentRoundData(realPlayer);
+
         return {
-            roundData: this.getCurrentRoundData(realPlayer),
+            roundData: roundData.roundId ? roundData : {},
             gameConfigs: configs,
             user: { ...user, rate },
         };
@@ -57,21 +59,20 @@ export default class InGameConsumer extends TableInGameConsumer {
             isActive: true,
             userId: realPlayer.UID,
             playerId: realPlayer.session.playerId,
-            numberOfBots: 0,
             name: realPlayer.profile.name,
             currency: realPlayer.session.currencyName,
             system: realPlayer.session.system,
             betTracks: {} as any,
             betQueue: [],
             operatorId: realPlayer.session.operatorId,
-        } as InGamePlayerData;
+            canBotLeave: true,
+        } as TableInGame;
 
         if (!tableData) {
             this.gameData.ingame[realPlayer.profile.name] = newTable;
         } else {
             tableData.userId = realPlayer.UID;
             tableData.playerId = realPlayer.session.playerId;
-            tableData.numberOfBots = tableData?.numberOfBots ?? 0;
             tableData.isActive = true;
         }
     }
