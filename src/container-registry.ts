@@ -36,6 +36,7 @@ export default class ContainerRegistry extends Table.TableContainerRegistry {
         super.registerCrons();
 
         this.container.register({
+            bot: asClass(Bot).singleton(),
             gameCron: asClass(GameCron).singleton().proxy(),
             processBetQueue: asClass(ProcessBetQueue).singleton().proxy(),
         });
@@ -50,7 +51,6 @@ export default class ContainerRegistry extends Table.TableContainerRegistry {
             inGameConsumer: asClass(InGameConsumer).singleton(),
             placeBetConsumer: asClass(PlaceBetConsumer).singleton(),
             settleGameRoundConsumer: asClass(SettleGameRoundConsumer).singleton().proxy(),
-            bot: asClass(Bot).singleton(),
             submitArrangementConsumer: asClass(SubmitArrangementConsumer).singleton(),
         });
     }
