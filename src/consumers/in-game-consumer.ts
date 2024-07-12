@@ -49,7 +49,7 @@ export default class InGameConsumer extends TableInGameConsumer {
         return {
             remainingTime: tableData.remainingTime,
             roundId: tableData.roundId,
-            hand: roundData.result[realPlayer.session.playerId],
+            hand: roundData?.result[realPlayer.session.playerId],
         };
     }
 

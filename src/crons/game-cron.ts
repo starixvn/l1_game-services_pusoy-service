@@ -68,6 +68,8 @@ export default class GameCron extends Table.Crons.TableGameCron {
     }
 
     async start() {
+        await this.getSettingForNewRound();
+        await this.updateExchangeRates();
         await this.roundIdConsumer.initRoundId();
         this.startCron();
     }
