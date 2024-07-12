@@ -1,5 +1,5 @@
 import { TableInGameConsumer } from "sc-game-base/src/table/event-consumers";
-import GameData, { TableInGame } from "../game-data";
+import GameData, { BotInRound, TableInGame } from "../game-data";
 import { RealPlayer } from "../type/real-player";
 
 export default class InGameConsumer extends TableInGameConsumer {
@@ -66,6 +66,7 @@ export default class InGameConsumer extends TableInGameConsumer {
             betQueue: [],
             operatorId: realPlayer.session.operatorId,
             canBotLeave: true,
+            botsInTable: [] as BotInRound[],
         } as TableInGame;
 
         if (!tableData) {

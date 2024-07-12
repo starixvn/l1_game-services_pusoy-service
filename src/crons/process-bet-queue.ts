@@ -73,7 +73,7 @@ export default class ProcessBetQueue extends TableProcessBetQueue {
     async proceedBet(player: RealPlayer, payload: BetPayload) {
         const tableData = this.gameData.ingame[player.profile.name];
 
-        if (!tableData.botsInTable || tableData.botsInTable.length < 1) {
+        if (tableData.botsInTable.length < 1) {
             tableData.betQueue.push({ player, payload });
             return;
         }

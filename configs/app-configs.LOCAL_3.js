@@ -35,7 +35,7 @@ export default {
     sentry: {
         sentryUrl: "https://13f39b8359404ed5aec23655e64ccf78@sentry.lumigame.com/2",
         logIdentifier: "Pusoy",
-        env: "LOCAL_1",
+        env: "LOCAL_3",
     },
     authenticateSettings: {
         url: "http://l1_auth_api_local_3:5000",
