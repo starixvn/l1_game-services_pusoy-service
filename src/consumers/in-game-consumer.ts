@@ -1,5 +1,5 @@
 import { TableInGameConsumer } from "sc-game-base/src/table/event-consumers";
-import GameData from "../game-data";
+import GameData, { InGamePlayerData } from "../game-data";
 import { RealPlayer } from "../type/real-player";
 
 export default class InGameConsumer extends TableInGameConsumer {
@@ -12,7 +12,7 @@ export default class InGameConsumer extends TableInGameConsumer {
         if (disabled && false) {
             realPlayer.socketClient.emit(this.definition.name, { um: disabled, um_message: this.gameData.umMessages });
         } else {
-            this.initTable(realPlayer);
+            this.initOrUpdateTable(realPlayer);
         }
 
         const payload = await this.buildPayload(realPlayer);
@@ -51,10 +51,28 @@ export default class InGameConsumer extends TableInGameConsumer {
         };
     }
 
-    initTable(realPlayer: RealPlayer) {
+    initOrUpdateTable(realPlayer: RealPlayer) {
         const tableData = this.gameData.ingame[realPlayer.profile.name];
-        tableData.userId = realPlayer.UID;
-        tableData.playerId = realPlayer.session.playerId;
-        tableData.numberOfBots = tableData?.numberOfBots ?? 0;
+        const newTable = {
+            isActive: true,
+            userId: realPlayer.UID,
+            playerId: realPlayer.session.playerId,
+            numberOfBots: 0,
+            name: realPlayer.profile.name,
+            currency: realPlayer.session.currencyName,
+            system: realPlayer.session.system,
+            betTracks: {} as any,
+            betQueue: [],
+            operatorId: realPlayer.session.operatorId,
+        } as InGamePlayerData;
+
+        if (!tableData) {
+            this.gameData.ingame[realPlayer.profile.name] = newTable;
+        } else {
+            tableData.userId = realPlayer.UID;
+            tableData.playerId = realPlayer.session.playerId;
+            tableData.numberOfBots = tableData?.numberOfBots ?? 0;
+            tableData.isActive = true;
+        }
     }
 }

@@ -43,10 +43,8 @@ export default class Bot extends BaseBot {
         const duration = this.definition.durations as Duration;
         const tableData = this.gameData.ingame[playerName];
         const currentRound = tableData.betTracks[roundId];
-
+        const maxTime = Math.max(tableData.remainingTime, duration.lockArrange);
         const botResults = currentRound.otherPlayers.map((bot) => currentRound.result[bot.id]);
-        const botArrangeTime = this.definition.durations.wholeRound - tableData.remainingTime;
-        const maxTime = this.definition.durations.wholeRound - duration.lockArrange - botArrangeTime;
 
         const result = await Promise.all(
             botResults.map(async (result) => {

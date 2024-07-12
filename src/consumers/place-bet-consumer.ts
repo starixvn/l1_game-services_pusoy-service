@@ -1,5 +1,5 @@
 import { BaseEventConsumers } from "sc-game-base/src/core";
-import GameData, { InGamePlayerData } from "../game-data";
+import GameData from "../game-data";
 import GameDefinition from "../game-definition";
 import { RealPlayer } from "../type/real-player";
 
@@ -22,7 +22,7 @@ export default class PlaceBetConsumer extends BaseEventConsumers.PlaceBetConsume
         const tableData = this.gameData.ingame[playerName];
         const isPlaying = tableData?.isRoundEnded ?? false;
 
-        if (!this.gameData.disabled && !isPlaying) {
+        if (!this.gameData.disabled && tableData.isActive && !isPlaying) {
             const betAmount = payload.amount ? 0 : payload.amount * this.gameData.gameConfigs.maxbet;
 
             Object.assign(payload, {
@@ -31,25 +31,13 @@ export default class PlaceBetConsumer extends BaseEventConsumers.PlaceBetConsume
                 receivedTime: new Date(),
             });
 
-            if (!tableData) {
-                const newPlayer = {
-                    name: playerName,
-                    currency: realPlayer.session.currencyName,
-                    system: realPlayer.session.system,
-                    betTracks: {},
-                    betQueue: [],
-                    operatorId: realPlayer.session.operatorId,
-                };
-
-                this.gameData.ingame[playerName] = newPlayer as InGamePlayerData;
-            }
-
-            this.gameData.ingame[playerName].betQueue.push({ player: realPlayer, payload });
+            tableData.betQueue.push({ player: realPlayer, payload });
         } else {
             this.publisher.publishToUser(realPlayer.UID, {
                 um: this.gameData.disabled,
                 um_message: this.gameData.umMessages,
                 isPlaying,
+                isActive: tableData.isActive,
             });
         }
     }
