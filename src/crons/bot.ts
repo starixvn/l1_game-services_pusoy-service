@@ -47,17 +47,15 @@ export default class Bot extends BaseBot {
         playerName: string,
         roundId: number
     ): Promise<{ playerId: string; hand: Hand<number[]>; arrangeTime: number }[]> {
-        const duration = this.definition.durations as Duration;
         const tableData = this.gameData.ingame[playerName];
-        const currentRound = tableData.betTracks[roundId];
-        const maxTime = Math.max(tableData.remainingTime, duration.lockArrange);
-        const botResults = currentRound.otherPlayers.map((bot) => currentRound.result[bot.id]);
+        const maxTime = Math.max(tableData.roundData!.remainingTime, 0);
+        const botResults = tableData.roundData!.otherPlayers.map((bot) => tableData.roundData!.result[bot.id]);
 
         const result = await Promise.all(
             botResults.map(async (result) => {
                 const cards = [...result.hand.front, ...result.hand.middle, ...result.hand.back];
                 const hand = await this.getArrangementFromBot(cards);
-                const arrangeTime = this.chance.integer({ min: duration.lockArrange, max: maxTime });
+                const arrangeTime = this.chance.integer({ min: 0, max: maxTime });
                 if (!hand) {
                     return {
                         playerId: result.playerId,
@@ -114,7 +112,7 @@ export default class Bot extends BaseBot {
             });
         });
 
-        this.publisher.publishToUser(tableInGame.userId, { otherPlayers: tableInGame.botsInTable });
+        this.publisher.publishToUser(tableInGame.socketId, { otherPlayers: tableInGame.botsInTable });
     }
 
     removeBotsFromTable(tableInGame: TableInGame) {
@@ -123,17 +121,16 @@ export default class Bot extends BaseBot {
 
     async updateBotArrangements(tableName: string, roundId: number) {
         const tableData = this.gameData.ingame[tableName];
-        const currentRound = tableData.betTracks[roundId];
 
         const botArrangements = await this.getArrangementFromBots(tableName, roundId);
 
         botArrangements.forEach((botHand) => {
-            currentRound.result[botHand.playerId] = {
+            tableData.roundData!.result[botHand.playerId] = {
                 hand: botHand.hand,
                 playerId: botHand.playerId,
             };
 
-            currentRound.otherPlayers.filter((bot) => bot.id === botHand.playerId)[0].arrangeTime = botHand.arrangeTime;
+            tableData.roundData!.otherPlayers.filter((bot) => bot.id === botHand.playerId)[0].arrangeTime = botHand.arrangeTime;
         });
 
         // await this.updateHandResultToDatabase(tableName);

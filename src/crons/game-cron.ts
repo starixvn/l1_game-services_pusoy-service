@@ -76,13 +76,16 @@ export default class GameCron extends Table.Crons.TableGameCron {
 
     async proceed() {
         const durations = this.definition.durations as Duration;
-        const remainingTime = this.gameData.remainingTime;
 
-        if (remainingTime === durations.wholeRound) {
+        if (this.gameData.remainingTime === durations.wholeRound) {
             await this.checkGameStatus();
         }
 
-        this.gameData.remainingTime--;
+        const remainingTime = this.gameData.remainingTime;
+
+        if (!this.gameData.disabled) {
+            this.gameData.remainingTime--;
+        }
 
         if (remainingTime === 0) {
             this.gameData.remainingTime = durations.wholeRound;
@@ -100,38 +103,45 @@ export default class GameCron extends Table.Crons.TableGameCron {
     }
 
     async proceedTableInGame(tableInGame: TableInGame, durations: Duration) {
-        const roundId = tableInGame.roundId;
-        const currentRound = tableInGame.betTracks[roundId];
-
-        if (roundId <= 0 || !currentRound) {
+        if (!tableInGame.roundData) {
             return;
         }
 
+        const { roundData: currentRound } = tableInGame;
         const numberOfPlayers = currentRound.otherPlayers.length + 1;
-        const remainingTime = tableInGame.remainingTime;
+        const remainingTime = currentRound.remainingTime;
         let showingResultTime = 0;
 
-        tableInGame.remainingTime--;
+        if (remainingTime === durations.wholeRound) {
+            this.gameStatusPublisher.publishToUser(tableInGame.socketId, { startRound: true, remainingTime });
+        }
+
+        currentRound.remainingTime--;
 
         currentRound.otherPlayers.forEach((bot) => {
             if (bot.arrangeTime === remainingTime) {
-                this.gameStatusPublisher.publishToUser(tableInGame.userId, { submittedPlayer: bot });
-                currentRound.numberOfSubmittedHands++;
+                this.gameStatusPublisher.publishToUser(tableInGame.socketId, { submittedPlayer: bot });
+                currentRound.submittedPlayers.push(bot);
             }
         });
 
-        if (remainingTime === durations.lockArrange || currentRound.numberOfSubmittedHands === numberOfPlayers) {
-            tableInGame.remainingTime = durations.lockArrange - 1;
-            showingResultTime -= await this.settleGameRoundConsumer.settleTable(tableInGame.name);
-            this.gameStatusPublisher.publishToUser(tableInGame.userId, { showingResultTime });
-            this.bot.removeBotsFromTable(tableInGame);
-            tableInGame.canBotLeave = true;
-            tableInGame.isRoundRunning = false;
-            tableInGame.canCreateNewRound = true;
+        if (remainingTime === 0 || currentRound.submittedPlayers.length === numberOfPlayers) {
+            currentRound.remainingTime = -1;
+            showingResultTime = await this.settleGameRoundConsumer.settleTable(tableInGame.name);
+
+            this.gameStatusPublisher.publishToUser(tableInGame.socketId, {
+                remainingTime: showingResultTime + durations.startingRound + durations.wholeRound,
+            });
+
+            delete tableInGame.roundData;
+
+            if (tableInGame.canDestroy) {
+                delete this.gameData.ingame[tableInGame.name];
+            }
         }
 
-        if (remainingTime === showingResultTime) {
-            tableInGame.remainingTime = durations.wholeRound;
+        if (remainingTime === -showingResultTime) {
+            currentRound.remainingTime = durations.wholeRound + durations.startingRound;
         }
     }
 }

@@ -2,7 +2,7 @@ import { Hand } from "@rd/pusoy-rules";
 import { IRound } from "../models/rounds";
 import SettleGameRoundConsumer from "./settle-game-round-consumer";
 import mongoose from "mongoose";
-import GameData from "../game-data";
+import GameData, { BotInRound } from "../game-data";
 import { isSameCards } from "../helpers";
 
 type SubmitPayload = {
@@ -26,15 +26,18 @@ export default class SubmitArrangementConsumer {
 
     async consume(data: SubmitPayload) {
         const tableData = this.gameData.ingame[data.playerName];
-        const currentRound = tableData.betTracks[data.roundId];
+        const currentRound = tableData.roundData;
         const isValidSubmit = this.isValidSubmit(data);
 
         if (isValidSubmit) {
-            currentRound.result[data.playerId].hand = data.hand;
+            currentRound!.result[data.playerId].hand = data.hand;
 
             if (data.submit) {
-                currentRound.realPlayerSubmitted = true;
-                ++currentRound.numberOfSubmittedHands;
+                currentRound!.realPlayerSubmitted = true;
+                currentRound!.submittedPlayers.push({
+                    id: data.playerId,
+                    name: data.playerName,
+                } as BotInRound);
 
                 // await this.updateHandResultToDatabase(tableName);
             }
@@ -43,13 +46,13 @@ export default class SubmitArrangementConsumer {
 
     isValidSubmit(data: SubmitPayload) {
         const tableData = this.gameData.ingame[data.playerName];
-        const currentRound = tableData?.betTracks[data.roundId];
+        const currentRound = tableData.roundData;
 
         return (
-            data.roundId === tableData.roundId &&
+            data.roundId === currentRound!.roundId &&
             currentRound &&
-            !currentRound.realPlayerSubmitted &&
-            isSameCards(currentRound.result[data.playerId].hand, data.hand)
+            !currentRound!.realPlayerSubmitted &&
+            isSameCards(currentRound!.result[data.playerId].hand, data.hand)
         );
     }
 }

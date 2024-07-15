@@ -50,7 +50,7 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
             return 0;
         }
 
-        const round = await this.roundsRepository.findOne({ id: tableData.roundId }).lean().exec();
+        const round = await this.roundsRepository.findOne({ id: tableData.roundData!.roundId }).lean().exec();
         if (!round) {
             return 0;
         }
@@ -97,9 +97,9 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
         settleEffectDuration.mini = miniPusoySet.size * durations.settleEffect.pusoy.mini;
         const totalSettleEffectDuration = Object.values(settleEffectDuration).reduce((a, b) => a + b, 0);
 
-        await this.roundsRepository.updateOne({ id: tableData.roundId }, { settlementResult: settlementResult }).exec();
+        await this.roundsRepository.updateOne({ id: tableData.roundData!.roundId }, { settlementResult: settlementResult }).exec();
 
-        this.roundResultPublisher.publishRoundResult({ roundId: tableData.roundId, settlementResult: settlement });
+        this.roundResultPublisher.publishRoundResult({ roundId: tableData.roundData!.roundId, settlementResult: settlement });
 
         return totalSettleEffectDuration;
     }

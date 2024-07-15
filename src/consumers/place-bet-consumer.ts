@@ -21,7 +21,7 @@ export default class PlaceBetConsumer extends BaseEventConsumers.PlaceBetConsume
         const playerName = realPlayer.profile.name;
         const tableData = this.gameData.ingame[playerName];
 
-        if (!this.gameData.disabled && tableData.isActive && tableData.canCreateNewRound) {
+        if (!this.gameData.disabled && !tableData.canDestroy && !tableData.roundData) {
             const betAmount = payload.amount ? 0 : payload.amount * this.gameData.gameConfigs.maxbet;
 
             Object.assign(payload, {
@@ -35,8 +35,8 @@ export default class PlaceBetConsumer extends BaseEventConsumers.PlaceBetConsume
             this.publisher.publishToUser(realPlayer.UID, {
                 um: this.gameData.disabled,
                 um_message: this.gameData.umMessages,
-                isPlaying: !tableData.canCreateNewRound,
-                isActive: tableData.isActive,
+                isPlaying: tableData.roundData,
+                isActive: !tableData.canDestroy,
             });
         }
     }

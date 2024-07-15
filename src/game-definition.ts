@@ -5,7 +5,6 @@ export default class GameDefinition extends BaseGameDefinition {
             id = 0,
             name = "",
             durations = {
-                lockArrange: 5,
                 wholeRound: 55,
                 settleEffect: {
                     crack: 2,
@@ -55,7 +54,6 @@ export type GameSettings = {
 };
 
 export type Duration = {
-    lockArrange: number;
     wholeRound: number;
     placingBets: number;
     lockingBet: number;

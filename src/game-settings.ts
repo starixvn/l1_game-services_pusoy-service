@@ -2,7 +2,6 @@ export default {
     id: 94,
     name: "Pusoy",
     durations: {
-        lockArrange: 5,
         wholeRound: 55,
         settleEffect: {
             crack: 2,

@@ -3,27 +3,21 @@ import { HandResult } from "./models/rounds";
 import { RealPlayer } from "./type/real-player";
 export default class GameData extends TableGameData {
     declare ingame: InGameData;
-    declare realPlayers: { [name: string]: RealPlayer };
+    declare realPlayers: { [playerId: string]: RealPlayer };
 }
 
 export type TableInGame = {
     name: string;
     currency: string;
     system: string;
-    betTracks: { [name: string]: RoundOfTable };
+    roundData?: RoundOfTable;
     betQueue: any;
     operatorId: string;
     betProcessing: boolean;
-    ownBets: any;
-    roundId: number;
-    remainingTime: number;
-    isActive: boolean;
+    canDestroy: boolean;
     playerId: string;
-    userId: string;
-    canBotLeave: boolean;
+    socketId: string;
     botsInTable: BotInRound[];
-    canCreateNewRound: boolean;
-    isRoundRunning: boolean;
 };
 
 export type InGameData = {
@@ -39,9 +33,10 @@ export type BotInRound = {
 };
 
 export type RoundOfTable = {
-    id: number;
-    result: { [name: string]: HandResult };
+    roundId: number;
+    remainingTime: number;
+    result: { [playerId: string]: HandResult };
     otherPlayers: BotInRound[];
-    numberOfSubmittedHands: number;
+    submittedPlayers: BotInRound[];
     realPlayerSubmitted: boolean;
 };
