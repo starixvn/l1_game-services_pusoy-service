@@ -91,7 +91,7 @@ export default class GameCron extends Table.Crons.TableGameCron {
         await Promise.all(
             Object.values(this.gameData.ingame).map(async (tableInGame) => {
                 if (tableInGame.botsInTable.length === 0) {
-                    this.addBotsToTableAndPublish(tableInGame);
+                    this.bot.addBotsToTableAndPublish(tableInGame);
                 }
 
                 await this.proceedTableInGame(tableInGame, durations);
@@ -124,50 +124,14 @@ export default class GameCron extends Table.Crons.TableGameCron {
             tableInGame.remainingTime = durations.lockArrange - 1;
             showingResultTime -= await this.settleGameRoundConsumer.settleTable(tableInGame.name);
             this.gameStatusPublisher.publishToUser(tableInGame.userId, { showingResultTime });
-            this.removeBotsFromTable(tableInGame);
-            tableInGame.isRoundEnded = true;
+            this.bot.removeBotsFromTable(tableInGame);
             tableInGame.canBotLeave = true;
+            tableInGame.isRoundRunning = false;
+            tableInGame.canCreateNewRound = true;
         }
 
         if (remainingTime === showingResultTime) {
             tableInGame.remainingTime = durations.wholeRound;
         }
-    }
-
-    async addBotsToTableAndPublish(tableInGame: TableInGame) {
-        const bots = await this.bot.getBotsToJoin();
-
-        bots.forEach((bot) => {
-            tableInGame.botsInTable.push({
-                id: bot.id,
-                name: bot.name,
-                red: bot.red,
-                avatarId: bot.avatarId,
-            });
-        });
-
-        this.gameStatusPublisher.publishToUser(tableInGame.userId, { otherPlayers: tableInGame.botsInTable });
-    }
-
-    removeBotsFromTable(tableInGame: TableInGame) {
-        tableInGame.botsInTable = [];
-    }
-
-    async updateBotArrangements(tableName: string, roundId: number) {
-        const tableData = this.gameData.ingame[tableName];
-        const currentRound = tableData.betTracks[roundId];
-
-        const botArrangements = await this.bot.getArrangementFromBots(tableName, roundId);
-
-        botArrangements.forEach((botHand) => {
-            currentRound.result[botHand.playerId] = {
-                hand: botHand.hand,
-                playerId: botHand.playerId,
-            };
-
-            currentRound.otherPlayers.filter((bot) => bot.id === botHand.playerId)[0].arrangeTime = botHand.arrangeTime;
-        });
-
-        // await this.updateHandResultToDatabase(tableName);
     }
 }

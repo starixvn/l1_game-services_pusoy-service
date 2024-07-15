@@ -1,6 +1,6 @@
 import GameManagementApiClientFactory, { getOrDefault, post } from "sc-game-base/src/core/game-management-api";
 import { UserInfos } from "sc-game-management-client";
-import GameData from "../game-data";
+import GameData, { TableInGame } from "../game-data";
 import { shuffle } from "../helpers";
 import appConfigs from "../app-configs";
 import { Hand } from "@rd/pusoy-rules";
@@ -9,15 +9,23 @@ import GameDefinition, { Duration } from "../game-definition";
 import Chance from "chance";
 import { BaseBot } from "sc-game-base/src/core/crons";
 import { NUMBER_OF_BOTS } from "../constants";
+import { BaseEventPublishers } from "sc-game-base/src/core";
 
 export default class Bot extends BaseBot {
     declare gameData: GameData;
     declare definition: GameDefinition;
+    publisher: BaseEventPublishers.BaseEventPublisher;
     chance: Chance.Chance;
 
-    constructor(gameManagementApiClientFactory: GameManagementApiClientFactory, gameData: GameData, definition: GameDefinition) {
+    constructor(
+        gameManagementApiClientFactory: GameManagementApiClientFactory,
+        gameData: GameData,
+        definition: GameDefinition,
+        publisher: BaseEventPublishers.BaseEventPublisher
+    ) {
         super(definition, gameData, gameManagementApiClientFactory);
         this.chance = new Chance();
+        this.publisher = publisher;
     }
 
     async getBotsToJoin(): Promise<UserInfos[]> {
@@ -92,5 +100,42 @@ export default class Bot extends BaseBot {
 
     async removeBots(botIds: string[]) {
         await post(this.gameManagementApiClient.users.updateBotsOutRoom({ botIds }));
+    }
+
+    async addBotsToTableAndPublish(tableInGame: TableInGame) {
+        const bots = await this.getBotsToJoin();
+
+        bots.forEach((bot) => {
+            tableInGame.botsInTable.push({
+                id: bot.id,
+                name: bot.name,
+                red: bot.red,
+                avatarId: bot.avatarId,
+            });
+        });
+
+        this.publisher.publishToUser(tableInGame.userId, { otherPlayers: tableInGame.botsInTable });
+    }
+
+    removeBotsFromTable(tableInGame: TableInGame) {
+        tableInGame.botsInTable = [];
+    }
+
+    async updateBotArrangements(tableName: string, roundId: number) {
+        const tableData = this.gameData.ingame[tableName];
+        const currentRound = tableData.betTracks[roundId];
+
+        const botArrangements = await this.getArrangementFromBots(tableName, roundId);
+
+        botArrangements.forEach((botHand) => {
+            currentRound.result[botHand.playerId] = {
+                hand: botHand.hand,
+                playerId: botHand.playerId,
+            };
+
+            currentRound.otherPlayers.filter((bot) => bot.id === botHand.playerId)[0].arrangeTime = botHand.arrangeTime;
+        });
+
+        // await this.updateHandResultToDatabase(tableName);
     }
 }

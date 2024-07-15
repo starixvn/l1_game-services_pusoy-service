@@ -73,10 +73,16 @@ export default class ProcessBetQueue extends TableProcessBetQueue {
     async proceedBet(player: RealPlayer, payload: BetPayload) {
         const tableData = this.gameData.ingame[player.profile.name];
 
+        if (!tableData.canCreateNewRound) {
+            return;
+        }
+
         if (tableData.botsInTable.length < 1) {
             tableData.betQueue.push({ player, payload });
             return;
         }
+
+        tableData.canCreateNewRound = false;
 
         this.initNewRound(player, payload);
 
@@ -88,6 +94,8 @@ export default class ProcessBetQueue extends TableProcessBetQueue {
         if (apiResult.isOk) {
             await this.handleSuccessBet(player, response, betInfo.gameRoundId, payload);
         } else {
+            tableData.canCreateNewRound = true;
+
             this.handleFailedBet(player, response, payload);
 
             if (
@@ -136,6 +144,7 @@ export default class ProcessBetQueue extends TableProcessBetQueue {
         tableData.playerId = player.session.playerId;
         tableData.roundId = this.gameData.roundId;
         tableData.canBotLeave = false;
+        tableData.isRoundRunning = true;
 
         payload.roundId = this.gameData.roundId;
 

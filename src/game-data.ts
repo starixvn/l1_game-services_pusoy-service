@@ -20,9 +20,10 @@ export type TableInGame = {
     isActive: boolean;
     playerId: string;
     userId: string;
-    isRoundEnded: boolean;
     canBotLeave: boolean;
     botsInTable: BotInRound[];
+    canCreateNewRound: boolean;
+    isRoundRunning: boolean;
 };
 
 export type InGameData = {
