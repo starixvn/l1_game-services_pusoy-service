@@ -167,8 +167,8 @@ export default class ProcessBetQueue extends TableProcessBetQueue {
         const numberOfPlayers = currentRound!.otherPlayers.length + 1;
 
         const hands =
-            this.gameData.settlementResultFromAdmin.result.playerName === player.profile.name
-                ? this.gameData.settlementResultFromAdmin.result.hands
+            this.gameData.settlementResultFromAdmin?.result.playerName === player.profile.name
+                ? this.gameData.settlementResultFromAdmin?.result.hands
                 : Helper.dealHands(numberOfPlayers);
 
         const playerHand = {
