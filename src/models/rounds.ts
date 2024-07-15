@@ -1,4 +1,4 @@
-import { Settlement } from "@rd/pusoy-rules";
+import { Settlement as RawSettlement } from "@rd/pusoy-rules";
 import mongoose from "mongoose";
 
 export type HandResult = {
@@ -22,6 +22,8 @@ const resultSchema = new mongoose.Schema<HandResult>(
     },
     { _id: false }
 );
+
+export type Settlement = RawSettlement & { playerId: string; time: Date };
 
 const settlementResultSchema = new mongoose.Schema<Settlement>(
     {
@@ -68,7 +70,7 @@ export interface IRound {
         playerId: string;
         time: Date;
     }[];
-    settlementResult: Settlement & { playerId: string; time: Date }[];
+    settlementResult: { [key: string]: Settlement };
     roundStartTime: Date;
     time: Date;
     exchangeRateId: number;

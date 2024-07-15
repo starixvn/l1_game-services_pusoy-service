@@ -59,7 +59,7 @@ export type Duration = {
     lockingBet: number;
     showingResult: number;
     startingRound: number;
-    settleEffect: {
+    settleAnimation: {
         crack: number;
         natural: number;
         compareHands: number;
