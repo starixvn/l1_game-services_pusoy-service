@@ -40,7 +40,7 @@ export default class Bot extends BaseBot {
         }
 
         if (tableInGame.roundData && tableInGame.roundData.remainingTime === 0) {
-            this.removeBotsFromTable(tableInGame);
+            await this.removeBotsFromTable(tableInGame);
         }
     }
 
@@ -78,7 +78,9 @@ export default class Bot extends BaseBot {
         this.publisher.publishToUser(tableInGame.socketId, { otherPlayers: tableInGame.botsInTable });
     }
 
-    removeBotsFromTable(tableInGame: TableInGame) {
+    async removeBotsFromTable(tableInGame: TableInGame) {
+        const botIds = tableInGame.botsInTable.map((bot) => bot.id);
+        this.removeBots(botIds);
         tableInGame.botsInTable = [];
     }
 }
