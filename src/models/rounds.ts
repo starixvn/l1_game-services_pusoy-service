@@ -8,6 +8,7 @@ export type HandResult = {
         back: number[];
     };
     playerId: string;
+    slot: number;
 };
 
 const resultSchema = new mongoose.Schema<HandResult>(
@@ -19,6 +20,7 @@ const resultSchema = new mongoose.Schema<HandResult>(
         },
         playerId: { type: String, require: false },
         time: { type: Date, default: new Date() },
+        slot: { type: Number, require: false },
     },
     { _id: false }
 );

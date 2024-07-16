@@ -99,9 +99,7 @@ export default class GameCron extends Table.Crons.TableGameCron {
 
         await Promise.all(
             Object.values(this.gameData.ingame).map(async (tableInGame) => {
-                if (tableInGame.botsInTable.length === 0) {
-                    this.bot.addBotsToTableAndPublish(tableInGame);
-                }
+                this.bot.handleBotsInTable(tableInGame);
 
                 await this.proceedTableInGame(tableInGame, durations);
             })
@@ -113,7 +111,7 @@ export default class GameCron extends Table.Crons.TableGameCron {
             return;
         }
 
-        const { roundData: currentRound } = tableInGame;
+        const currentRound = tableInGame.roundData;
         const numberOfPlayers = currentRound.otherPlayers.length + 1;
         const remainingTime = currentRound.remainingTime;
         let showingResultTime = 0;
@@ -134,7 +132,7 @@ export default class GameCron extends Table.Crons.TableGameCron {
 
         if (remainingTime === 0 || currentRound.submittedPlayers.length === numberOfPlayers) {
             currentRound.remainingTime = -1;
-            showingResultTime = await this.settleGameRoundConsumer.settleTable(tableInGame.name);
+            showingResultTime = await this.settleGameRoundConsumer.settleTable(tableInGame);
 
             this.gameStatusPublisher.publishToUser(tableInGame.socketId, {
                 remainingTime: showingResultTime + durations.startingRound + durations.wholeRound,

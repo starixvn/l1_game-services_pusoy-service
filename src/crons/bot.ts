@@ -2,19 +2,15 @@ import GameManagementApiClientFactory, { getOrDefault, post } from "sc-game-base
 import { UserInfos } from "sc-game-management-client";
 import GameData, { TableInGame } from "../game-data";
 import { shuffle } from "../helpers";
-import appConfigs from "../app-configs";
-import { Hand } from "@rd/pusoy-rules";
-import axios from "axios";
-import GameDefinition, { Duration } from "../game-definition";
+import GameDefinition from "../game-definition";
 import Chance from "chance";
 import { BaseBot } from "sc-game-base/src/core/crons";
 import { NUMBER_OF_BOTS } from "../constants";
 import { BaseEventPublishers } from "sc-game-base/src/core";
-import { HandResult, IRound } from "../models/rounds";
+import { IRound } from "../models/rounds";
 import mongoose from "mongoose";
 import { logger } from "sc-common";
 
-type BotArrangeMent = { playerId: string; hand: Hand<number[]>; arrangeTime: number };
 export default class Bot extends BaseBot {
     declare gameData: GameData;
     declare definition: GameDefinition;
@@ -36,6 +32,16 @@ export default class Bot extends BaseBot {
         this.publisher = publisher;
         this.roundsRepository = roundsRepository;
         this.logService = logService;
+    }
+
+    async handleBotsInTable(tableInGame: TableInGame) {
+        if (tableInGame.botsInTable.length < 1) {
+            await this.addBotsToTableAndPublish(tableInGame);
+        }
+
+        if (tableInGame.roundData && tableInGame.roundData.remainingTime === 0) {
+            this.removeBotsFromTable(tableInGame);
+        }
     }
 
     async getBotsToJoin(): Promise<UserInfos[]> {

@@ -2,7 +2,7 @@ import { Hand } from "@rd/pusoy-rules";
 import { IRound } from "../models/rounds";
 import SettleGameRoundConsumer from "./settle-game-round-consumer";
 import mongoose from "mongoose";
-import GameData, { BotInRound, TableInGame } from "../game-data";
+import GameData, { BotInRound, RoundOfTable, TableInGame } from "../game-data";
 import { isSameCards } from "../helpers";
 
 type SubmitPayload = {
@@ -26,15 +26,15 @@ export default class SubmitArrangementConsumer {
 
     async consume(data: SubmitPayload) {
         const tableData = this.gameData.ingame[data.playerName];
-        const currentRound = tableData.roundData;
+        const currentRound = tableData.roundData as RoundOfTable;
         const isValidSubmit = this.isValidSubmit(data);
 
         if (isValidSubmit) {
-            currentRound!.result[data.playerId].hand = data.hand;
+            currentRound.result[data.playerId].hand = data.hand;
 
             if (data.submit) {
-                currentRound!.realPlayerSubmitted = true;
-                currentRound!.submittedPlayers.push({
+                currentRound.realPlayerSubmitted = true;
+                currentRound.submittedPlayers.push({
                     id: data.playerId,
                     name: data.playerName,
                 } as BotInRound);
@@ -46,25 +46,25 @@ export default class SubmitArrangementConsumer {
 
     isValidSubmit(data: SubmitPayload) {
         const tableData = this.gameData.ingame[data.playerName];
-        const currentRound = tableData.roundData;
+        const currentRound = tableData.roundData as RoundOfTable;
 
         return (
-            data.roundId === currentRound!.roundId &&
+            data.roundId === currentRound.roundId &&
             currentRound &&
-            !currentRound!.realPlayerSubmitted &&
-            isSameCards(currentRound!.result[data.playerId].hand, data.hand)
+            !currentRound.realPlayerSubmitted &&
+            isSameCards(currentRound.result[data.playerId].hand, data.hand)
         );
     }
 
     async updatePlayerHandResultToDatabase(tableData: TableInGame, playerId: string) {
-        const roundData = tableData.roundData;
+        const roundData = tableData.roundData as RoundOfTable;
 
-        const filter = { id: roundData!.roundId };
+        const filter = { id: roundData.roundId };
 
         const update = {
-            [`result.${playerId}`]: roundData!.result[playerId],
+            [`result.${playerId}`]: roundData.result[playerId],
         };
 
-        await this.roundsRepository.findOneAndUpdate(filter, update);
+        await this.roundsRepository.findOneAndUpdate(filter, update).exec();
     }
 }

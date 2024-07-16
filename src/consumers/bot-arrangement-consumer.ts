@@ -8,7 +8,7 @@ import { HandResult, IRound } from "../models/rounds";
 import mongoose from "mongoose";
 import { logger } from "sc-common";
 
-type BotArrangeMent = { playerId: string; hand: Hand<number[]>; arrangeTime: number };
+type BotArrangeMent = HandResult & { arrangeTime: number };
 
 export default class BotArrangementConsumer {
     chance: Chance.Chance;
@@ -56,7 +56,7 @@ export default class BotArrangementConsumer {
                 playerId: result.playerId,
                 hand,
                 arrangeTime,
-            };
+            } as BotArrangeMent;
         } catch (error) {
             return {} as BotArrangeMent;
         }
@@ -90,6 +90,6 @@ export default class BotArrangementConsumer {
             [`result.${playerId}`]: roundData!.result[playerId],
         };
 
-        await this.roundsRepository.findOneAndUpdate(filter, update);
+        await this.roundsRepository.findOneAndUpdate(filter, update).exec();
     }
 }

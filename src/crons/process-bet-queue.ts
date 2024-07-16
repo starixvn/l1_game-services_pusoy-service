@@ -1,5 +1,5 @@
 import { TableProcessBetQueue } from "sc-game-base/src/table/crons";
-import GameData from "../game-data";
+import GameData, { RoundOfTable } from "../game-data";
 import { RealPlayer } from "../type/real-player";
 import GameManagementApiClientFactory, { callAndForget } from "sc-game-base/src/core/game-management-api";
 import { BetPayload } from "../consumers/place-bet-consumer";
@@ -130,7 +130,7 @@ export default class ProcessBetQueue extends TableProcessBetQueue {
             this.updateUserStakeLevel(player, balance.minBet, balance.maxBet);
         }
 
-        await this.handleStartNewRound(player, roundId);
+        await this.handleStartNewRound(player);
     }
 
     initNewRound(player: RealPlayer, payload: BetPayload) {
@@ -154,17 +154,17 @@ export default class ProcessBetQueue extends TableProcessBetQueue {
         this.gameData.roundId++;
     }
 
-    async handleStartNewRound(player: RealPlayer, roundId: number) {
-        this.dealHandsAndPublish(player, roundId);
+    async handleStartNewRound(player: RealPlayer) {
+        this.dealHandsAndPublish(player);
 
-        await this.updateHandResultToDatabase(player.profile.name, roundId);
+        await this.updateHandResultToDatabase(player.profile.name);
     }
 
-    dealHandsAndPublish(player: RealPlayer, roundId: number) {
+    dealHandsAndPublish(player: RealPlayer) {
         const tableData = this.gameData.ingame[player.profile.name];
-        const { roundData: currentRound } = tableData;
+        const currentRound = tableData.roundData as RoundOfTable;
 
-        const numberOfPlayers = currentRound!.otherPlayers.length + 1;
+        const numberOfPlayers = currentRound.otherPlayers.length + 1;
 
         const hands =
             this.gameData.settlementResultFromAdmin?.result.playerName === player.profile.name
@@ -174,39 +174,41 @@ export default class ProcessBetQueue extends TableProcessBetQueue {
         const playerHand = {
             hand: hands[0],
             playerId: player.session.playerId,
+            slot: 0,
         };
 
-        currentRound!.result[player.session.playerId] = playerHand;
+        currentRound.result[player.session.playerId] = playerHand;
 
-        currentRound!.otherPlayers.forEach((bot, index) => {
+        currentRound.otherPlayers.forEach((bot, index) => {
             const botHand = {
                 hand: hands[index + 1],
                 playerId: bot.id,
+                slot: index + 1,
             };
 
-            currentRound!.result[bot.id] = botHand;
+            currentRound.result[bot.id] = botHand;
         });
 
-        this.placeBetPublisher.publishToUser(player.UID, { playerHand, roundId });
+        this.placeBetPublisher.publishToUser(player.UID, { playerHand, roundId: currentRound.roundId });
     }
 
-    async updateHandResultToDatabase(tableName: string, roundId: number) {
+    async updateHandResultToDatabase(tableName: string) {
         const tableData = this.gameData.ingame[tableName];
-        const roundData = tableData.roundData;
+        const roundData = tableData.roundData as RoundOfTable;
 
-        const filter = { id: roundData!.roundId };
+        const filter = { id: roundData.roundId };
 
-        const result = roundData!.result;
+        const result = roundData.result;
 
         const round = {
-            id: roundData!.roundId,
+            id: roundData.roundId,
             result: result,
             settlementResult: [],
             time: new Date(),
             exchangeRateId: this.gameData.exchangeRates.exId,
         };
 
-        await this.roundsRepository.findOneAndUpdate(filter, round, { upsert: true });
+        await this.roundsRepository.findOneAndUpdate(filter, round, { upsert: true }).exec();
     }
 
     async upsertBet(player: RealPlayer, roundId: number, bet: BetPayload, rate: number) {
@@ -232,11 +234,9 @@ export default class ProcessBetQueue extends TableProcessBetQueue {
             newBet.playerId = player.session.playerId;
         }
 
-        await this.betsRepository.updateOne(
-            existingBetFilter,
-            { $inc: existingBetIncrement, $setOnInsert: newBet },
-            { upsert: true, setDefaultsOnInsert: true }
-        );
+        await this.betsRepository
+            .updateOne(existingBetFilter, { $inc: existingBetIncrement, $setOnInsert: newBet }, { upsert: true, setDefaultsOnInsert: true })
+            .exec();
 
         return newBet.time;
     }
