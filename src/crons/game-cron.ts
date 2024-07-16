@@ -7,6 +7,7 @@ import GameData, { TableInGame } from "../game-data";
 import { ProvablyFairConsumer, UnsettledRoundConsumer } from "sc-game-base/src/core/event-consumers";
 import SettleGameConsumer from "../consumers/settle-game-round-consumer";
 import Bot from "../crons/bot";
+import BotArrangementConsumer from "../consumers/bot-arrangement-consumer";
 
 export default class GameCron extends Table.Crons.TableGameCron {
     roundsRepository: mongoose.Model<any>;
@@ -14,6 +15,7 @@ export default class GameCron extends Table.Crons.TableGameCron {
     declare definition: GameDefinition;
     declare settleGameRoundConsumer: SettleGameConsumer;
     declare bot: Bot;
+    botArrangementConsumer: BotArrangementConsumer;
 
     constructor({
         definition,
@@ -31,6 +33,7 @@ export default class GameCron extends Table.Crons.TableGameCron {
         roundsRepository,
         provablyFairConsumer,
         unsettledRoundConsumer,
+        botArrangementConsumer,
     }: {
         definition: GameDefinition;
         gameData: GameData;
@@ -47,6 +50,7 @@ export default class GameCron extends Table.Crons.TableGameCron {
         roundsRepository: mongoose.Model<any>;
         provablyFairConsumer: ProvablyFairConsumer;
         unsettledRoundConsumer: UnsettledRoundConsumer;
+        botArrangementConsumer: BotArrangementConsumer;
     }) {
         super({
             definition,
@@ -64,7 +68,9 @@ export default class GameCron extends Table.Crons.TableGameCron {
             provablyFairConsumer,
             unsettledRoundConsumer,
         });
+
         this.roundsRepository = roundsRepository;
+        this.botArrangementConsumer = botArrangementConsumer;
     }
 
     async start() {
@@ -114,6 +120,7 @@ export default class GameCron extends Table.Crons.TableGameCron {
 
         if (remainingTime === durations.wholeRound) {
             this.gameStatusPublisher.publishToUser(tableInGame.socketId, { startRound: true, remainingTime });
+            this.botArrangementConsumer.handleBotArrangements(tableInGame);
         }
 
         currentRound.remainingTime--;

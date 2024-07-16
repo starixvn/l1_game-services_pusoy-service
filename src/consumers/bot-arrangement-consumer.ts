@@ -1,0 +1,95 @@
+import { TableInGame } from "../game-data";
+import { shuffle } from "../helpers";
+import appConfigs from "../app-configs";
+import { Hand } from "@rd/pusoy-rules";
+import axios from "axios";
+import Chance from "chance";
+import { HandResult, IRound } from "../models/rounds";
+import mongoose from "mongoose";
+import { logger } from "sc-common";
+
+type BotArrangeMent = { playerId: string; hand: Hand<number[]>; arrangeTime: number };
+
+export default class BotArrangementConsumer {
+    chance: Chance.Chance;
+    roundsRepository: mongoose.Model<IRound>;
+    logService: typeof logger;
+
+    constructor(roundsRepository: mongoose.Model<IRound>, logService: typeof logger) {
+        this.chance = new Chance();
+        this.roundsRepository = roundsRepository;
+        this.logService = logService;
+    }
+
+    getDataFromBotApi = async (cards: number[]): Promise<Hand<number[]>> => {
+        const botUrl = shuffle(appConfigs.botUrls)[0];
+        const data = {
+            private: {
+                player_id: "",
+                arrangement_id: "",
+                input_hand: 0,
+                input: cards,
+            },
+        };
+        try {
+            const response = await axios.post(botUrl, data);
+            const rawData = response.data;
+
+            return rawData.private.output.map((item: any) => ({
+                front: item.segment_3,
+                middle: item.segment_2,
+                back: item.segment_1,
+            }));
+        } catch (error) {
+            this.logService.logError(`Error fetching data from bot API: ${botUrl}`);
+            throw error;
+        }
+    };
+
+    async getArrangementFromBot(result: HandResult, remainingTime: number) {
+        const cards = [...result.hand.front, ...result.hand.middle, ...result.hand.back];
+        try {
+            const hand = await this.getDataFromBotApi(cards);
+            const arrangeTime = this.chance.integer({ min: 0, max: remainingTime });
+
+            return {
+                playerId: result.playerId,
+                hand,
+                arrangeTime,
+            };
+        } catch (error) {
+            return {} as BotArrangeMent;
+        }
+    }
+
+    async handleBotArrangements(tableData: TableInGame) {
+        const botResults = tableData.roundData!.otherPlayers.map((bot) => tableData.roundData!.result[bot.id]);
+
+        const updatePromises = botResults.map(async (botResult) => {
+            let botArrangement = {} as BotArrangeMent;
+
+            while (!botArrangement.hand && tableData.roundData!.remainingTime > 0) {
+                botArrangement = await this.getArrangementFromBot(botResult, tableData.roundData!.remainingTime);
+
+                if (botArrangement.hand) {
+                    tableData.roundData!.result[botArrangement.playerId] = botArrangement;
+                    await this.updateBotHandResultToDatabase(tableData, botArrangement.playerId);
+                }
+            }
+        });
+
+        await Promise.allSettled(updatePromises);
+    }
+
+    async updateBotHandResultToDatabase(tableData: TableInGame, playerId: string) {
+        const roundData = tableData.roundData;
+
+        const filter = { id: roundData!.roundId };
+
+        const update = {
+            [`result.${playerId}`]: roundData!.result[playerId],
+        };
+
+        await this.roundsRepository.findOneAndUpdate(filter, update);
+    }
+}

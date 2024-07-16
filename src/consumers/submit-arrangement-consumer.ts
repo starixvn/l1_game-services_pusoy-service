@@ -2,7 +2,7 @@ import { Hand } from "@rd/pusoy-rules";
 import { IRound } from "../models/rounds";
 import SettleGameRoundConsumer from "./settle-game-round-consumer";
 import mongoose from "mongoose";
-import GameData, { BotInRound } from "../game-data";
+import GameData, { BotInRound, TableInGame } from "../game-data";
 import { isSameCards } from "../helpers";
 
 type SubmitPayload = {
@@ -39,7 +39,7 @@ export default class SubmitArrangementConsumer {
                     name: data.playerName,
                 } as BotInRound);
 
-                // await this.updateHandResultToDatabase(tableName);
+                await this.updatePlayerHandResultToDatabase(tableData, data.playerId);
             }
         }
     }
@@ -54,5 +54,17 @@ export default class SubmitArrangementConsumer {
             !currentRound!.realPlayerSubmitted &&
             isSameCards(currentRound!.result[data.playerId].hand, data.hand)
         );
+    }
+
+    async updatePlayerHandResultToDatabase(tableData: TableInGame, playerId: string) {
+        const roundData = tableData.roundData;
+
+        const filter = { id: roundData!.roundId };
+
+        const update = {
+            [`result.${playerId}`]: roundData!.result[playerId],
+        };
+
+        await this.roundsRepository.findOneAndUpdate(filter, update);
     }
 }

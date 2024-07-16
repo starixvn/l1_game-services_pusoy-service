@@ -196,10 +196,7 @@ export default class ProcessBetQueue extends TableProcessBetQueue {
 
         const filter = { id: roundData!.roundId };
 
-        const result = [
-            roundData!.result[tableData.playerId],
-            Object.values(roundData!.result).filter((res) => res.playerId !== tableData.playerId),
-        ];
+        const result = roundData!.result;
 
         const round = {
             id: roundData!.roundId,

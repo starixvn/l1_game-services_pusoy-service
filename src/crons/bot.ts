@@ -10,22 +10,32 @@ import Chance from "chance";
 import { BaseBot } from "sc-game-base/src/core/crons";
 import { NUMBER_OF_BOTS } from "../constants";
 import { BaseEventPublishers } from "sc-game-base/src/core";
+import { HandResult, IRound } from "../models/rounds";
+import mongoose from "mongoose";
+import { logger } from "sc-common";
 
+type BotArrangeMent = { playerId: string; hand: Hand<number[]>; arrangeTime: number };
 export default class Bot extends BaseBot {
     declare gameData: GameData;
     declare definition: GameDefinition;
     publisher: BaseEventPublishers.BaseEventPublisher;
     chance: Chance.Chance;
+    roundsRepository: mongoose.Model<IRound>;
+    logService: typeof logger;
 
     constructor(
         gameManagementApiClientFactory: GameManagementApiClientFactory,
         gameData: GameData,
         definition: GameDefinition,
-        publisher: BaseEventPublishers.BaseEventPublisher
+        publisher: BaseEventPublishers.BaseEventPublisher,
+        roundsRepository: mongoose.Model<IRound>,
+        logService: typeof logger
     ) {
         super(definition, gameData, gameManagementApiClientFactory);
         this.chance = new Chance();
         this.publisher = publisher;
+        this.roundsRepository = roundsRepository;
+        this.logService = logService;
     }
 
     async getBotsToJoin(): Promise<UserInfos[]> {
@@ -42,59 +52,6 @@ export default class Bot extends BaseBot {
 
         return shuffle(bots);
     }
-
-    async getArrangementFromBots(
-        playerName: string,
-        roundId: number
-    ): Promise<{ playerId: string; hand: Hand<number[]>; arrangeTime: number }[]> {
-        const tableData = this.gameData.ingame[playerName];
-        const maxTime = Math.max(tableData.roundData!.remainingTime, 0);
-        const botResults = tableData.roundData!.otherPlayers.map((bot) => tableData.roundData!.result[bot.id]);
-
-        const result = await Promise.all(
-            botResults.map(async (result) => {
-                const cards = [...result.hand.front, ...result.hand.middle, ...result.hand.back];
-                const hand = await this.getArrangementFromBot(cards);
-                const arrangeTime = this.chance.integer({ min: 0, max: maxTime });
-                if (!hand) {
-                    return {
-                        playerId: result.playerId,
-                        hand: result.hand,
-                        arrangeTime,
-                    };
-                }
-
-                return {
-                    playerId: result.playerId,
-                    hand,
-                    arrangeTime,
-                };
-            })
-        );
-
-        return result;
-    }
-
-    getArrangementFromBot = async (cards: number[]): Promise<Hand<number[]>> => {
-        const botUrl = shuffle(appConfigs.botUrls)[0];
-        const data = {
-            private: {
-                player_id: "",
-                arrangement_id: "",
-                input_hand: 0,
-                input: cards,
-            },
-        };
-        const rawData = await axios.post(botUrl, data).then((res) => {
-            return res.data;
-        });
-
-        return rawData?.private.output.map((item: any) => ({
-            front: item.segment_3,
-            middle: item.segment_2,
-            back: item.segment_1,
-        }));
-    };
 
     async removeBots(botIds: string[]) {
         await post(this.gameManagementApiClient.users.updateBotsOutRoom({ botIds }));
@@ -117,22 +74,5 @@ export default class Bot extends BaseBot {
 
     removeBotsFromTable(tableInGame: TableInGame) {
         tableInGame.botsInTable = [];
-    }
-
-    async updateBotArrangements(tableName: string, roundId: number) {
-        const tableData = this.gameData.ingame[tableName];
-
-        const botArrangements = await this.getArrangementFromBots(tableName, roundId);
-
-        botArrangements.forEach((botHand) => {
-            tableData.roundData!.result[botHand.playerId] = {
-                hand: botHand.hand,
-                playerId: botHand.playerId,
-            };
-
-            tableData.roundData!.otherPlayers.filter((bot) => bot.id === botHand.playerId)[0].arrangeTime = botHand.arrangeTime;
-        });
-
-        // await this.updateHandResultToDatabase(tableName);
     }
 }

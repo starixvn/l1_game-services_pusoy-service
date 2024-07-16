@@ -13,6 +13,7 @@ import {
 import { betLogs, bets, rounds, tmpBets } from "./models";
 import Bot from "./crons/bot";
 import SocketRouter from "./router/socket-router";
+import BotArrangementConsumer from "./consumers/bot-arrangement-consumer";
 
 export default class ContainerRegistry extends Table.TableContainerRegistry {
     register(appConfigs: any, definition: any, gameData: any): AwilixContainer<any> {
@@ -52,6 +53,7 @@ export default class ContainerRegistry extends Table.TableContainerRegistry {
             placeBetConsumer: asClass(PlaceBetConsumer).singleton(),
             settleGameRoundConsumer: asClass(SettleGameRoundConsumer).singleton().proxy(),
             submitArrangementConsumer: asClass(SubmitArrangementConsumer).singleton(),
+            botArrangementConsumer: asClass(BotArrangementConsumer).singleton(),
         });
     }
 
