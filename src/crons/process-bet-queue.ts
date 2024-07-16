@@ -73,6 +73,11 @@ export default class ProcessBetQueue extends TableProcessBetQueue {
     async proceedBet(player: RealPlayer, payload: BetPayload) {
         const tableData = this.gameData.ingame[player.profile.name];
 
+        if (this.gameData.disabled) {
+            this.placeBetPublisher.publishToUser(player.UID, { um: this.gameData.disabled, um_message: this.gameData.umMessages });
+            return;
+        }
+
         if (tableData.roundData) {
             return;
         }
