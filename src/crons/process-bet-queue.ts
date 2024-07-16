@@ -1,6 +1,5 @@
 import { TableProcessBetQueue } from "sc-game-base/src/table/crons";
-import GameData, { RoundOfTable } from "../game-data";
-import { RealPlayer } from "../type/real-player";
+import GameData, { RealPlayer, RoundOfTable } from "../game-data";
 import GameManagementApiClientFactory, { callAndForget } from "sc-game-base/src/core/game-management-api";
 import { BetPayload } from "../consumers/place-bet-consumer";
 import GameDefinition, { Duration } from "../game-definition";

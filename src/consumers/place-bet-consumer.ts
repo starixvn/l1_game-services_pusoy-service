@@ -1,7 +1,6 @@
 import { BaseEventConsumers } from "sc-game-base/src/core";
-import GameData from "../game-data";
+import GameData, { RealPlayer } from "../game-data";
 import GameDefinition from "../game-definition";
-import { RealPlayer } from "../type/real-player";
 
 export type BetPayload = {
     roundId: number;

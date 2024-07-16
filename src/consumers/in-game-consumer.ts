@@ -1,6 +1,5 @@
 import { TableInGameConsumer } from "sc-game-base/src/table/event-consumers";
-import GameData, { BotInRound, TableInGame } from "../game-data";
-import { RealPlayer } from "../type/real-player";
+import GameData, { BotInRound, RealPlayer, TableInGame } from "../game-data";
 
 export default class InGameConsumer extends TableInGameConsumer {
     declare gameData: GameData;

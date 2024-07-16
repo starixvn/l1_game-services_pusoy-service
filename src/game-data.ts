@@ -1,10 +1,16 @@
 import { TableGameData } from "sc-game-base/src/table";
 import { HandResult } from "./models/rounds";
-import { RealPlayer } from "./type/real-player";
 export default class GameData extends TableGameData {
     declare ingame: InGameData;
     declare realPlayers: { [playerId: string]: RealPlayer };
 }
+
+export type RealPlayer = {
+    UID: string;
+    profile: { name: string; minBet: number; maxBet: number };
+    session: any;
+    socketClient: any;
+};
 
 export type TableInGame = {
     name: string;
