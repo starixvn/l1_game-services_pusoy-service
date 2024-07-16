@@ -2,14 +2,7 @@ import { asClass, asValue, AwilixContainer } from "awilix";
 import { Table } from "sc-game-base";
 import GameCron from "./crons/game-cron";
 import ProcessBetQueue from "./crons/process-bet-queue";
-import {
-    InGameConsumer,
-    PlaceBetConsumer,
-    SettleGameRoundConsumer,
-    SubmitArrangementConsumer,
-    UserDisconnectConsumer,
-    UserSignInConsumer,
-} from "./consumers";
+import { InGameConsumer, PlaceBetConsumer, SettleGameRoundConsumer, SubmitArrangementConsumer, UserDisconnectConsumer } from "./consumers";
 import { betLogs, bets, rounds, tmpBets } from "./models";
 import Bot from "./crons/bot";
 import SocketRouter from "./router/socket-router";
@@ -48,7 +41,6 @@ export default class ContainerRegistry extends Table.TableContainerRegistry {
 
         this.container.register({
             userDisconnectConsumer: asClass(UserDisconnectConsumer).singleton(),
-            userSignInConsumer: asClass(UserSignInConsumer).singleton(),
             inGameConsumer: asClass(InGameConsumer).singleton(),
             placeBetConsumer: asClass(PlaceBetConsumer).singleton(),
             settleGameRoundConsumer: asClass(SettleGameRoundConsumer).singleton().proxy(),
