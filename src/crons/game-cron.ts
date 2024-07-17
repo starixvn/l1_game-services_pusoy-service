@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 import { Table, Core } from "sc-game-base";
-import GameManagementApiClientFactory from "sc-game-base/src/core/game-management-api";
+import GameManagementApiClientFactory, { getOrDefault } from "sc-game-base/src/core/game-management-api";
 import { logger } from "sc-common";
 import GameDefinition, { Duration } from "../game-definition";
 import GameData, { TableInGame } from "../game-data";
@@ -78,6 +78,22 @@ export default class GameCron extends Table.Crons.TableGameCron {
         await this.updateExchangeRates();
         await this.roundIdConsumer.initRoundId();
         this.startCron();
+    }
+
+    async handleGameStatus(previouslyDisabled: boolean) {
+        const { configName } = this.definition;
+
+        if (this.gameData.disabled) {
+            const { durations } = this.definition;
+
+            const notification = await getOrDefault(this.gameManagementApiClient.notification.getUmMessages(configName), {});
+
+            this.gameData.umMessages = notification;
+
+            this.gameData.remainingTime = durations.wholeRound;
+        } else if (previouslyDisabled) {
+            await this.enableGame();
+        }
     }
 
     async proceed() {
