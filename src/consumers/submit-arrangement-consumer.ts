@@ -31,6 +31,7 @@ export default class SubmitArrangementConsumer {
 
         if (isValidSubmit) {
             currentRound.result[data.playerId].hand = data.hand;
+            currentRound.result[data.playerId].time = new Date();
 
             if (data.submit) {
                 currentRound.realPlayerSubmitted = true;

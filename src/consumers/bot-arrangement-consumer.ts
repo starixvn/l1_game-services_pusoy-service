@@ -1,5 +1,5 @@
 import { TableInGame } from "../game-data";
-import { shuffle } from "../helpers";
+import { retry, shuffle } from "../helpers";
 import appConfigs from "../app-configs";
 import { Hand } from "@rd/pusoy-rules";
 import axios from "axios";
@@ -49,8 +49,10 @@ export default class BotArrangementConsumer {
 
     async getArrangementFromBot(result: HandResult, remainingTime: number) {
         const cards = [...result.hand.front, ...result.hand.middle, ...result.hand.back];
+        const delay = 1000;
+        const retries = Math.floor((remainingTime * 1000) / delay);
         try {
-            const hand = await this.getDataFromBotApi(cards);
+            const hand = await retry(() => this.getDataFromBotApi(cards), retries, delay);
             const arrangeTime = this.chance.integer({ min: 0, max: remainingTime });
 
             return {
@@ -68,13 +70,12 @@ export default class BotArrangementConsumer {
 
         const updatePromises = botResults.map(async (botResult) => {
             let botArrangement = {} as BotArrangeMent;
+            botArrangement = await this.getArrangementFromBot(botResult, tableData.roundData!.remainingTime);
+            if (botArrangement.hand && tableData.roundData!.remainingTime > 0) {
+                tableData.roundData!.result[botArrangement.playerId].hand = botArrangement.hand;
+                tableData.roundData!.result[botArrangement.playerId].time = new Date();
 
-            while (!botArrangement.hand && tableData.roundData!.remainingTime > 0) {
-                botArrangement = await this.getArrangementFromBot(botResult, tableData.roundData!.remainingTime);
-                if (botArrangement.hand && tableData.roundData!.remainingTime > 0) {
-                    tableData.roundData!.result[botArrangement.playerId].hand = botArrangement.hand;
-                    await this.updateBotHandResultToDatabase(tableData, botArrangement.playerId);
-                }
+                await this.updateBotHandResultToDatabase(tableData, botArrangement.playerId);
             }
         });
 

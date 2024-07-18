@@ -180,6 +180,7 @@ export default class ProcessBetQueue extends TableProcessBetQueue {
             hand: hands[0],
             playerId: player.session.playerId,
             slot: 0,
+            time: new Date(),
         };
 
         currentRound.result[player.session.playerId] = playerHand;
@@ -189,6 +190,7 @@ export default class ProcessBetQueue extends TableProcessBetQueue {
                 hand: hands[index + 1],
                 playerId: bot.id,
                 slot: index + 1,
+                time: new Date(),
             };
 
             currentRound.result[bot.id] = botHand;

@@ -17,7 +17,7 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
 
         const hands = handResults.map((handResult) => handResult.hand);
 
-        const settlement = this.definition.settle(hands) as RawSettlement[];
+        const settlements = this.definition.settle(hands) as RawSettlement[];
 
         const settlementResult: Record<string, Settlement> = {};
 
@@ -31,29 +31,30 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
         const miniPusoySet: Set<string> = new Set();
         const durations = this.definition.durations as Duration;
 
-        for (let i = 0; i < settlement.length; i++) {
-            settlementResult[handResults[i].playerId] = {
-                ...settlement[i],
-                time: new Date(),
-                playerId: handResults[i].playerId,
+        settlements.forEach((settlement, index) => {
+            settlementResult[handResults[index].playerId] = {
+                ...settlement,
+                playerId: handResults[index].playerId,
+                slot: handResults[index].slot,
             };
-            if (settlement[i].natural.name !== Natural.Unknown) {
+
+            if (settlement.natural.name !== Natural.Unknown) {
                 settleEffectDuration.natural = durations.settleAnimation.natural;
             }
-            if (settlement[i].pusoy.full > 0) {
+            if (settlement.pusoy.full > 0) {
                 settleEffectDuration.fullPusoy = durations.settleAnimation.pusoy.full;
             }
-            if (settlement[i].crack.isCrack) {
+            if (settlement.crack.isCrack) {
                 settleEffectDuration.crack = durations.settleAnimation.crack;
             }
-            if (settlement[i].pusoy.mini) {
-                Object.entries(settlement[i].pusoy.mini).forEach(([key, value]) => {
+            if (settlement.pusoy.mini) {
+                Object.entries(settlement.pusoy.mini).forEach(([key, value]) => {
                     if (value > 0) {
                         miniPusoySet.add(key);
                     }
                 });
             }
-        }
+        });
 
         settleEffectDuration.mini = miniPusoySet.size * durations.settleAnimation.pusoy.mini;
         const totalSettleEffectDuration = Object.values(settleEffectDuration).reduce((a, b) => a + b, 0);

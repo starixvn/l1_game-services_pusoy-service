@@ -9,6 +9,7 @@ export type HandResult = {
     };
     playerId: string;
     slot: number;
+    time: Date;
 };
 
 const resultSchema = new mongoose.Schema<HandResult>(
@@ -20,12 +21,12 @@ const resultSchema = new mongoose.Schema<HandResult>(
         },
         playerId: { type: String, require: false },
         time: { type: Date, default: new Date() },
-        slot: { type: Number, require: false },
+        slot: { type: Number, default: -1 },
     },
     { _id: false }
 );
 
-export type Settlement = RawSettlement & { playerId: string; time: Date };
+export type Settlement = RawSettlement & { playerId: string; slot: number };
 
 const settlementResultSchema = new mongoose.Schema<Settlement>(
     {
@@ -55,8 +56,8 @@ const settlementResultSchema = new mongoose.Schema<Settlement>(
             full: { type: Number, required: true },
         },
         sum: { type: Number, required: true },
+        slot: { type: Number, default: -1 },
         playerId: { type: String, require: false },
-        time: { type: Date, default: new Date() },
     },
     { _id: false }
 );
