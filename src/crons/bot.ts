@@ -64,6 +64,10 @@ export default class Bot extends BaseBot {
     }
 
     async addBotsToTableAndPublish(tableInGame: TableInGame) {
+        if (tableInGame.botsInTable.length > 0) {
+            return;
+        }
+
         const bots = await this.getBotsToJoin();
 
         bots.forEach((bot) => {

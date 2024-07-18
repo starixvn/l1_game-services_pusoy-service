@@ -64,8 +64,8 @@ export default {
         endpoint: "http://10.10.50.69:4318/v1/traces",
     },
     botUrls: [
-        "https://bots.lumigame.com/chinese-poker-bot-simple",
-        "https://chinesepoker-sai.nexdev.net",
-        "https://bots.lumigame.com/chinese-poker-bot-probability",
+        "https://bots.lumigame.com/pusoy-bot-simple/move",
+        "https://bots.lumigame.com/pusoy-bot-probability/move",
+        "https://bots.lumigame.com/pusoy-bot-probability/move",
     ],
-}
+};

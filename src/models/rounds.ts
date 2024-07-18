@@ -75,7 +75,7 @@ export interface IRound {
 const Schema = new mongoose.Schema<IRound>({
     id: { type: Number, required: true },
     result: { type: Map, of: resultSchema },
-    settlementResult: { type: [settlementResultSchema] },
+    settlementResult: { type: Map, of: settlementResultSchema },
     roundStartTime: { type: Date, default: new Date() },
     time: { type: Date, default: new Date() },
     exchangeRateId: { type: Number, require: true },

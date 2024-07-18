@@ -27,20 +27,23 @@ export default class BotArrangementConsumer {
             private: {
                 player_id: "",
                 arrangement_id: "",
-                input_hand: 0,
+                input_hash: 0,
                 input: cards,
+                output: null,
             },
         };
         try {
             const response = await axios.post(botUrl, data);
-            const rawData = response.data;
+            const arrangeData = response.data.output;
 
-            return rawData.private.output.map((item: any) => ({
-                front: item.segment_3,
-                middle: item.segment_2,
-                back: item.segment_1,
-            }));
+            return {
+                front: arrangeData.segment_3,
+                middle: arrangeData.segment_2,
+                back: arrangeData.segment_1,
+            };
         } catch (error) {
+            console.log("api error");
+            console.log(error);
             this.logService.logError(`Error fetching data from bot API: ${botUrl}`);
             throw error;
         }
@@ -70,8 +73,9 @@ export default class BotArrangementConsumer {
 
             while (!botArrangement.hand && tableData.roundData!.remainingTime > 0) {
                 botArrangement = await this.getArrangementFromBot(botResult, tableData.roundData!.remainingTime);
-
-                if (botArrangement.hand) {
+                console.log("success get arrangement: ");
+                if (botArrangement.hand && tableData.roundData!.remainingTime > 0) {
+                    console.log("Bot arrangement: ");
                     tableData.roundData!.result[botArrangement.playerId] = botArrangement;
                     await this.updateBotHandResultToDatabase(tableData, botArrangement.playerId);
                 }
