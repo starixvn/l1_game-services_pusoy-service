@@ -42,8 +42,6 @@ export default class BotArrangementConsumer {
                 back: arrangeData.segment_1,
             };
         } catch (error) {
-            console.log("api error");
-            console.log(error);
             this.logService.logError(`Error fetching data from bot API: ${botUrl}`);
             throw error;
         }
@@ -73,10 +71,8 @@ export default class BotArrangementConsumer {
 
             while (!botArrangement.hand && tableData.roundData!.remainingTime > 0) {
                 botArrangement = await this.getArrangementFromBot(botResult, tableData.roundData!.remainingTime);
-                console.log("success get arrangement: ");
                 if (botArrangement.hand && tableData.roundData!.remainingTime > 0) {
-                    console.log("Bot arrangement: ");
-                    tableData.roundData!.result[botArrangement.playerId] = botArrangement;
+                    tableData.roundData!.result[botArrangement.playerId].hand = botArrangement.hand;
                     await this.updateBotHandResultToDatabase(tableData, botArrangement.playerId);
                 }
             }
