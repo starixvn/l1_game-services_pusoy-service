@@ -3,7 +3,7 @@ export default {
     name: "Pusoy",
     durations: {
         wholeRound: 55,
-        settleEffect: {
+        settleAnimation: {
             crack: 2,
             natural: 2,
             compareHands: 4,

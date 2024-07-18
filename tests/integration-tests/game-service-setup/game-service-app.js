@@ -6,13 +6,16 @@ import ContainerRegistry from "../../../build/container-registry";
 
 import gameSettings from "../_stubs/game-settings";
 import appConfigs from "../../../build/app-configs.IGT";
+import { createPusoyRules } from "@rd/pusoy-rules";
+import scoreConfig from "../../../build/score-config";
 
 export const run = async () => {
+    const pusoy = createPusoyRules(scoreConfig);
     initAPIStub(appConfigs.apiSettings.apiUrl);
     const definition = new GameDefinition(
         gameSettings,
         ()=>{},
-        ()=>{},
+        pusoy.settle,
         ()=>{},
     );
     const gameData = new GameData(gameSettings.durations.wholeRound);

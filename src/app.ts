@@ -2,7 +2,7 @@ import appConfigs from "./app-configs";
 import gameSettings from "./game-settings";
 import { Core } from "sc-game-base";
 import GameData from "./game-data";
-import GameDefinition from "./game-definition";
+import GameDefinition, { GameSettings } from "./game-definition";
 import ContainerRegistry from "./container-registry";
 import { createPusoyRules } from "@rd/pusoy-rules";
 import scoreConfig from "./score-config";
@@ -10,7 +10,7 @@ import scoreConfig from "./score-config";
 const run = async () => {
     const pusoy = createPusoyRules(scoreConfig);
     const definition = new GameDefinition(
-        gameSettings as any,
+        gameSettings as GameSettings,
         () => {},
         pusoy.settle,
         () => {}

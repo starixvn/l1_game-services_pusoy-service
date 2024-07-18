@@ -4,7 +4,7 @@ export default Object.assign(gameSettings, {
     durations: {
         lockArrange: 1,
         wholeRound: 5,
-        settleEffect: {
+        settleAnimation: {
             crack: 1,
             natural: 1,
             compareHands: 1,
@@ -13,5 +13,5 @@ export default Object.assign(gameSettings, {
                 full: 1,
             },
         },
-    }
+    },
 });

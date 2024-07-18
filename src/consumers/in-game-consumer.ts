@@ -28,7 +28,7 @@ export default class InGameConsumer extends TableInGameConsumer {
         const roundData = this.getCurrentRoundData(realPlayer);
 
         return {
-            roundData: roundData.roundId ?? {},
+            roundData: roundData.hand ? roundData : {},
             gameConfigs: configs,
             user: { ...user, rate },
         };

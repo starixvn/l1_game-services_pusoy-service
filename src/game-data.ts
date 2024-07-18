@@ -41,6 +41,7 @@ export type BotInRound = {
 export type RoundOfTable = {
     roundId: number;
     remainingTime: number;
+    showingResultTime: number;
     result: { [playerId: string]: HandResult };
     otherPlayers: BotInRound[];
     submittedPlayers: BotInRound[];

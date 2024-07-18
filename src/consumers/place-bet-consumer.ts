@@ -21,8 +21,7 @@ export default class PlaceBetConsumer extends BaseEventConsumers.PlaceBetConsume
         const tableData = this.gameData.ingame[playerName];
 
         if (!this.gameData.disabled && !tableData.canDestroy && !tableData.roundData) {
-            const betAmount = payload.amount ? 0 : payload.amount * this.gameData.gameConfigs.maxbet;
-
+            const betAmount = payload.amount ? payload.amount * this.gameData.gameConfigs.maxbet : 0;
             Object.assign(payload, {
                 amount: betAmount,
                 mode: payload.m ?? this.DisplayMode.Landscape,

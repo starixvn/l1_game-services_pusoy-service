@@ -6,8 +6,6 @@ const bet = {
     uid: { type: String, required: true },
     name: { type: String, required: true },
 
-    stakeLevel: { type: Number, default: 0 },
-
     betwin: { type: Number, default: 0 },
     time: { type: Date },
     totalAmount: { type: Number, default: 0 },

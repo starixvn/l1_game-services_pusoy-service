@@ -8,6 +8,7 @@ import { logger } from "sc-common";
 import mongoose from "mongoose";
 import BaseMetrics from "sc-game-base/src/core/base-metrics";
 import * as Helper from "../helpers";
+import { NUMBER_OF_DEAL_HAND } from "../constants";
 
 export default class ProcessBetQueue extends TableProcessBetQueue {
     roundsRepository: mongoose.Model<any>;
@@ -77,7 +78,7 @@ export default class ProcessBetQueue extends TableProcessBetQueue {
             return;
         }
 
-        if (tableData.roundData) {
+        if (tableData.roundData || !player.session) {
             return;
         }
 
@@ -118,7 +119,7 @@ export default class ProcessBetQueue extends TableProcessBetQueue {
             await this.insertBetLog(player, roundId, bet, rate);
         }
 
-        await this.upsertBet(player, roundId, bet, rate);
+        await this.insertBet(player, roundId, bet, rate);
 
         // callAndForget(
         //     this.gameManagementApiClient.users.setBalanceAndDecreaseScoins({
@@ -146,8 +147,9 @@ export default class ProcessBetQueue extends TableProcessBetQueue {
 
         tableData.roundData = {
             remainingTime: durations.wholeRound,
+            showingResultTime: 0,
             roundId: this.gameData.roundId,
-            otherPlayers: [...tableData.botsInTable],
+            otherPlayers: tableData.botsInTable.slice(0, NUMBER_OF_DEAL_HAND - 1),
             result: {} as any,
             submittedPlayers: [],
             realPlayerSubmitted: false,
@@ -167,11 +169,10 @@ export default class ProcessBetQueue extends TableProcessBetQueue {
     dealHandsAndPublish(player: RealPlayer) {
         const tableData = this.gameData.ingame[player.profile.name];
         const currentRound = tableData.roundData as RoundOfTable;
-
         const numberOfPlayers = currentRound.otherPlayers.length + 1;
 
         const hands =
-            this.gameData.settlementResultFromAdmin?.result.playerName === player.profile.name
+            this.gameData.settlementResultFromAdmin?.result?.playerName === player.profile.name
                 ? this.gameData.settlementResultFromAdmin?.result.hands
                 : Helper.dealHands(numberOfPlayers);
 
@@ -207,7 +208,6 @@ export default class ProcessBetQueue extends TableProcessBetQueue {
         const round = {
             id: roundData.roundId,
             result: result,
-            settlementResult: [],
             time: new Date(),
             exchangeRateId: this.gameData.exchangeRates.exId,
         };
@@ -215,32 +215,21 @@ export default class ProcessBetQueue extends TableProcessBetQueue {
         await this.roundsRepository.findOneAndUpdate(filter, round, { upsert: true }).exec();
     }
 
-    async upsertBet(player: RealPlayer, roundId: number, bet: BetPayload, rate: number) {
+    async insertBet(player: RealPlayer, roundId: number, bet: BetPayload, rate: number) {
         const newBet = {
             uid: player.UID,
             name: player.profile.name,
             time: new Date(),
             roundId,
+            totalAmount: bet.amount,
+            siteId: player.session.siteId,
+            currency: player.session.currencyName,
+            rate: rate,
+            operatorId: player.session.operatorId,
+            playerId: player.session.playerId,
         } as any;
 
-        const existingBetFilter = { uid: player.UID, roundId };
-
-        const existingBetIncrement = {
-            totalAmount: bet.amount,
-        };
-
-        if (player.session) {
-            newBet.siteId = player.session.siteId;
-            newBet.currency = player.session.currencyName;
-            newBet.rate = rate;
-
-            newBet.operatorId = player.session.operatorId;
-            newBet.playerId = player.session.playerId;
-        }
-
-        await this.betsRepository
-            .updateOne(existingBetFilter, { $inc: existingBetIncrement, $setOnInsert: newBet }, { upsert: true, setDefaultsOnInsert: true })
-            .exec();
+        await this.betsRepository.create(newBet);
 
         return newBet.time;
     }
