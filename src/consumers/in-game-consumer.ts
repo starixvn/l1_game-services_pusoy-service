@@ -7,7 +7,6 @@ export default class InGameConsumer extends TableInGameConsumer {
         const { gameConfigs } = this.gameData;
         const disabled = !gameConfigs || !gameConfigs.enabled;
 
-        // TODO: check
         if (disabled) {
             realPlayer.socketClient.emit(this.definition.name, { um: disabled, um_message: this.gameData.umMessages });
         } else {
@@ -66,12 +65,12 @@ export default class InGameConsumer extends TableInGameConsumer {
             botsInTable: [] as BotInRound[],
         } as TableInGame;
 
-        if (!tableData) {
-            this.gameData.ingame[realPlayer.profile.name] = newTable;
-        } else {
+        if (tableData?.roundData && tableData.roundData.remainingTime > 0) {
             tableData.socketId = realPlayer.UID;
             tableData.playerId = realPlayer.session.playerId;
             tableData.canDestroy = false;
+        } else {
+            this.gameData.ingame[realPlayer.profile.name] = newTable;
         }
     }
 }
