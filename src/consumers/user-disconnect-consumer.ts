@@ -1,4 +1,4 @@
-import GameData from "../game-data";
+import GameData, { TableInGame } from "../game-data";
 import { Core } from "sc-game-base";
 
 export default class UserDisconnectConsumer extends Core.BaseEventConsumers.UserDisconnectConsumer {
@@ -15,12 +15,19 @@ export default class UserDisconnectConsumer extends Core.BaseEventConsumers.User
         if (realPlayer) {
             const tableData = this.gameData.ingame[realPlayer.profile.name];
 
-            if (tableData) {
+            this.updateOrDeleteTable(tableData);
+            super.consume(socketClient);
+        }
+    }
+
+    updateOrDeleteTable(tableData: TableInGame) {
+        if (tableData) {
+            if (!tableData.roundData) {
+                delete this.gameData.ingame[tableData.name];
+            } else {
                 tableData.canDestroy = true;
                 tableData.socketId = "";
             }
-
-            super.consume(socketClient);
         }
     }
 }

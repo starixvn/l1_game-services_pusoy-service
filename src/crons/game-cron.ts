@@ -155,6 +155,7 @@ export default class GameCron extends Table.Crons.TableGameCron {
 
             if (tableInGame.canDestroy) {
                 delete this.gameData.ingame[tableInGame.name];
+                return;
             }
         }
 
