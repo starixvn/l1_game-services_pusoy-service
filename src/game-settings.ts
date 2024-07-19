@@ -2,8 +2,13 @@ export default {
     id: 94,
     name: "Pusoy",
     durations: {
-        wholeRound: 55,
-        settleAnimation: {
+        timeline: {
+            transition: 55,
+            deal: 52,
+            arrangement: 50,
+            animation: 70,
+        },
+        animation: {
             crack: 2,
             natural: 2,
             compareHands: 4,
@@ -13,7 +18,6 @@ export default {
             },
         },
     },
-    numberOfRoundHistory: 108,
-    historyPageSize: 30,
     provablyFair: false,
+    suitesMapper: { 0: "spade", 1: "heart", 2: "club", 3: "diamond" },
 };

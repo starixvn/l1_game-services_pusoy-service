@@ -14,6 +14,8 @@ export default class ProcessBetQueue extends TableProcessBetQueue {
     roundsRepository: mongoose.Model<any>;
 
     declare gameData: GameData;
+    declare definition: GameDefinition;
+
     constructor({
         definition,
         gameData,
@@ -139,14 +141,14 @@ export default class ProcessBetQueue extends TableProcessBetQueue {
     }
 
     initNewRound(player: RealPlayer, payload: BetPayload) {
-        const durations = this.definition.durations as Duration;
+        const durations = this.definition.durations;
         const tableData = this.gameData.ingame[player.profile.name];
 
         tableData.socketId = player.UID;
         tableData.playerId = player.session.playerId;
 
         tableData.roundData = {
-            remainingTime: durations.wholeRound,
+            remainingTime: durations.timeline.deal,
             showingResultTime: 0,
             roundId: this.gameData.roundId,
             otherPlayers: tableData.botsInTable.slice(0, NUMBER_OF_DEAL_HAND - 1),

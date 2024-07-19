@@ -90,16 +90,16 @@ export default class GameCron extends Table.Crons.TableGameCron {
 
             this.gameData.umMessages = notification;
 
-            this.gameData.remainingTime = durations.wholeRound;
+            this.gameData.remainingTime = durations.timeline.animation;
         } else if (previouslyDisabled) {
             await this.enableGame();
         }
     }
 
     async proceed() {
-        const durations = this.definition.durations as Duration;
+        const durations = this.definition.durations;
 
-        if (this.gameData.remainingTime === durations.wholeRound) {
+        if (this.gameData.remainingTime === durations.timeline.animation) {
             await this.checkGameStatus();
         }
 
@@ -110,7 +110,7 @@ export default class GameCron extends Table.Crons.TableGameCron {
         }
 
         if (remainingTime === 0) {
-            this.gameData.remainingTime = durations.wholeRound;
+            this.gameData.remainingTime = durations.timeline.animation;
         }
 
         await Promise.all(
@@ -129,13 +129,17 @@ export default class GameCron extends Table.Crons.TableGameCron {
 
         const currentRound = tableInGame.roundData;
         const numberOfPlayers = currentRound.otherPlayers.length + 1;
+
         const remainingTime = currentRound.remainingTime;
-        if (remainingTime === durations.wholeRound) {
-            this.gameStatusPublisher.publishToUser(tableInGame.socketId, { startRound: true, remainingTime });
-            this.botArrangementConsumer.handleBotArrangements(tableInGame);
+        currentRound.remainingTime--;
+
+        if (remainingTime === durations.timeline.deal) {
+            this.gameStatusPublisher.publishToUser(tableInGame.socketId, { startDeal: true, remainingTime });
         }
 
-        currentRound.remainingTime--;
+        if (remainingTime === durations.timeline.arrangement) {
+            this.botArrangementConsumer.handleBotArrangements(tableInGame);
+        }
 
         currentRound.otherPlayers.forEach((bot) => {
             if (bot.arrangeTime === remainingTime) {
@@ -150,7 +154,7 @@ export default class GameCron extends Table.Crons.TableGameCron {
             currentRound.showingResultTime = await this.settleGameRoundConsumer.settleTable(tableInGame);
 
             this.gameStatusPublisher.publishToUser(tableInGame.socketId, {
-                remainingTime: currentRound.showingResultTime + durations.startingRound + durations.wholeRound,
+                remainingTime: currentRound.showingResultTime + durations.timeline.transition,
             });
 
             if (tableInGame.canDestroy) {

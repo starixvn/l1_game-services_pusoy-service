@@ -29,7 +29,7 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
         };
 
         const miniPusoySet: Set<string> = new Set();
-        const durations = this.definition.durations as Duration;
+        const durations = this.definition.durations;
 
         settlements.forEach((settlement, index) => {
             settlementResult[handResults[index].playerId] = {
@@ -39,13 +39,13 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
             };
 
             if (settlement.natural.name !== Natural.Unknown) {
-                settleEffectDuration.natural = durations.settleAnimation.natural;
+                settleEffectDuration.natural = durations.animation.natural;
             }
             if (settlement.pusoy.full > 0) {
-                settleEffectDuration.fullPusoy = durations.settleAnimation.pusoy.full;
+                settleEffectDuration.fullPusoy = durations.animation.pusoy.full;
             }
             if (settlement.crack.isCrack) {
-                settleEffectDuration.crack = durations.settleAnimation.crack;
+                settleEffectDuration.crack = durations.animation.crack;
             }
             if (settlement.pusoy.mini) {
                 Object.entries(settlement.pusoy.mini).forEach(([key, value]) => {
@@ -56,7 +56,7 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
             }
         });
 
-        settleEffectDuration.mini = miniPusoySet.size * durations.settleAnimation.pusoy.mini;
+        settleEffectDuration.mini = miniPusoySet.size * durations.animation.pusoy.mini;
         const totalSettleEffectDuration = Object.values(settleEffectDuration).reduce((a, b) => a + b, 0);
 
         await this.roundsRepository.updateOne({ id: round.roundId }, { settlementResult: settlementResult }).exec();
