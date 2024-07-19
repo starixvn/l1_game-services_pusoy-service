@@ -27,7 +27,15 @@ describe("InGameConsumer tests", () => {
                 enableFreeBet: false,
                 enabled: true,
             };
+
+            const gameSettings = {
+                durations: {},
+                suitesMapper: { 0: "spade", 1: "heart", 2: "club", 3: "diamond" },
+            };
+
             consumer.gameData.gameConfigs = gameConfigs as any;
+            consumer.definition = gameSettings as any;
+
             const currencyGroupGames = [{ groupId: "group", maxBet: { choice1: 2000, choice2: 2000 } }];
             consumer.gameData.currencyGroupGames = currencyGroupGames;
             const exchangeRates = { code: { USD: 1 } };
@@ -55,6 +63,7 @@ describe("InGameConsumer tests", () => {
             const expectedPayload = {
                 roundData,
                 gameConfigs,
+                gameSettings,
                 user: { ...user, rate: 1 },
             };
 

@@ -1,8 +1,10 @@
 import { TableInGameConsumer } from "sc-game-base/src/table/event-consumers";
 import GameData, { BotInRound, RealPlayer, TableInGame } from "../game-data";
-
+import GameDefinition from "../game-definition";
 export default class InGameConsumer extends TableInGameConsumer {
     declare gameData: GameData;
+    declare definition: GameDefinition;
+
     async consume(realPlayer: RealPlayer) {
         const { gameConfigs } = this.gameData;
         const disabled = !gameConfigs || !gameConfigs.enabled;
@@ -25,10 +27,12 @@ export default class InGameConsumer extends TableInGameConsumer {
         const rate = exchangeRates.code[session.currencyCode] * session.multiplier;
         const configs = this.getGameConfigs(session.currencyGroupId);
         const roundData = this.getCurrentRoundData(realPlayer);
+        const gameSettings = { durations: this.definition.durations, suitesMapper: this.definition.suitesMapper };
 
         return {
             roundData: roundData.hand ? roundData : {},
             gameConfigs: configs,
+            gameSettings,
             user: { ...user, rate },
         };
     }
