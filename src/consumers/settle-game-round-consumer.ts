@@ -1,7 +1,7 @@
 import { IRound, Settlement } from "../models/rounds";
 import mongoose from "mongoose";
 import { Natural, Settlement as RawSettlement } from "@rd/pusoy-rules";
-import GameDefinition, { Duration } from "../game-definition";
+import GameDefinition from "../game-definition";
 import GameData, { RoundOfTable, TableInGame } from "../game-data";
 import { Core } from "sc-game-base";
 

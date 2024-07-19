@@ -1,4 +1,4 @@
-import { TableInGame } from "../game-data";
+import { RoundOfTable, TableInGame } from "../game-data";
 import { retry, shuffle } from "../helpers";
 import appConfigs from "../app-configs";
 import { Hand } from "@rd/pusoy-rules";
@@ -32,6 +32,7 @@ export default class BotArrangementConsumer {
                 output: null,
             },
         };
+
         try {
             const response = await axios.post(botUrl, data);
             const arrangeData = response.data.output;
@@ -51,6 +52,7 @@ export default class BotArrangementConsumer {
         const cards = [...result.hand.front, ...result.hand.middle, ...result.hand.back];
         const delay = 1000;
         const retries = Math.floor((remainingTime * 1000) / delay);
+
         try {
             const hand = await retry(() => this.getDataFromBotApi(cards), retries, delay);
             const arrangeTime = this.chance.integer({ min: 0, max: remainingTime });
@@ -66,14 +68,18 @@ export default class BotArrangementConsumer {
     }
 
     async handleBotArrangements(tableData: TableInGame) {
-        const botResults = tableData.roundData!.otherPlayers.map((bot) => tableData.roundData!.result[bot.id]);
+        const roundData = tableData.roundData as RoundOfTable;
+
+        const botResults = roundData.otherPlayers.map((bot) => roundData.result[bot.id]);
 
         const updatePromises = botResults.map(async (botResult) => {
-            let botArrangement = {} as BotArrangeMent;
-            botArrangement = await this.getArrangementFromBot(botResult, tableData.roundData!.remainingTime);
-            if (botArrangement.hand && tableData.roundData!.remainingTime > 0) {
-                tableData.roundData!.result[botArrangement.playerId].hand = botArrangement.hand;
-                tableData.roundData!.result[botArrangement.playerId].time = new Date();
+            let botArrangement: BotArrangeMent;
+
+            botArrangement = await this.getArrangementFromBot(botResult, roundData.remainingTime);
+
+            if (botArrangement.hand && roundData.remainingTime > 0) {
+                roundData.result[botArrangement.playerId].hand = botArrangement.hand;
+                roundData.result[botArrangement.playerId].time = new Date();
 
                 await this.updateBotHandResultToDatabase(tableData, botArrangement.playerId);
             }
@@ -83,12 +89,12 @@ export default class BotArrangementConsumer {
     }
 
     async updateBotHandResultToDatabase(tableData: TableInGame, playerId: string) {
-        const roundData = tableData.roundData;
+        const roundData = tableData.roundData as RoundOfTable;
 
-        const filter = { id: roundData!.roundId };
+        const filter = { id: roundData.roundId };
 
         const update = {
-            [`result.${playerId}`]: roundData!.result[playerId],
+            [`result.${playerId}`]: roundData.result[playerId],
         };
 
         await this.roundsRepository.findOneAndUpdate(filter, update).exec();

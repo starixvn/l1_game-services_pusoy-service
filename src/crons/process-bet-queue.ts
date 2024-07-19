@@ -1,8 +1,8 @@
 import { TableProcessBetQueue } from "sc-game-base/src/table/crons";
 import GameData, { RealPlayer, RoundOfTable } from "../game-data";
-import GameManagementApiClientFactory, { callAndForget } from "sc-game-base/src/core/game-management-api";
+import GameManagementApiClientFactory from "sc-game-base/src/core/game-management-api";
 import { BetPayload } from "../consumers/place-bet-consumer";
-import GameDefinition, { Duration } from "../game-definition";
+import GameDefinition from "../game-definition";
 import { PlaceBetPublisher } from "sc-game-base/src/core/event-publishers";
 import { logger } from "sc-common";
 import mongoose from "mongoose";

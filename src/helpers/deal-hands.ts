@@ -11,7 +11,7 @@ export const dealHands = (numberOfPlayers: number = NUMBER_OF_DEAL_HAND): Hand<n
 
     deck = shuffle(deck);
 
-    let cards: number[][] = [];
+    const cards: number[][] = [];
     for (let i = 0; i < numberOfPlayers; i++) {
         cards.push([]);
     }

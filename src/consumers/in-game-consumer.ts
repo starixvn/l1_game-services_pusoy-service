@@ -22,7 +22,7 @@ export default class InGameConsumer extends TableInGameConsumer {
 
     async buildPayload(realPlayer: RealPlayer) {
         const user = await this.getUserInfo(realPlayer);
-        const { exchangeRates } = this.gameData as GameData;
+        const { exchangeRates } = this.gameData;
         const { session } = realPlayer;
         const rate = exchangeRates.code[session.currencyCode] * session.multiplier;
         const configs = this.getGameConfigs(session.currencyGroupId);
