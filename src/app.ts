@@ -16,7 +16,7 @@ const run = async () => {
         () => {}
     );
 
-    const gameData = new GameData(gameSettings.durations.timeline.deal);
+    const gameData = new GameData(gameSettings.durations.timeline.animation);
 
     const container = new ContainerRegistry().register(appConfigs, definition, gameData);
 
