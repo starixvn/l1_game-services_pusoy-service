@@ -2,9 +2,13 @@ import gameSettings from "../../../build/game-settings";
 
 export default Object.assign(gameSettings, {
     durations: {
-        lockArrange: 1,
-        wholeRound: 5,
-        settleAnimation: {
+        timeline: {
+            transition: 5,
+            deal: 4,
+            arrangement: 3,
+            animation: 5,
+        },
+        animation: {
             crack: 1,
             natural: 1,
             compareHands: 1,

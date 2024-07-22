@@ -73,9 +73,7 @@ export default class BotArrangementConsumer {
         const botResults = roundData.otherPlayers.map((bot) => roundData.result[bot.id]);
 
         const updatePromises = botResults.map(async (botResult) => {
-            let botArrangement: BotArrangeMent;
-
-            botArrangement = await this.getArrangementFromBot(botResult, roundData.remainingTime);
+            const botArrangement = await this.getArrangementFromBot(botResult, roundData.remainingTime);
 
             if (botArrangement.hand && roundData.remainingTime > 0) {
                 roundData.result[botArrangement.playerId].hand = botArrangement.hand;
