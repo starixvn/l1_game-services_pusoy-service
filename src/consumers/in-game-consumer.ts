@@ -28,8 +28,11 @@ export default class InGameConsumer extends TableInGameConsumer {
         const configs = this.getGameConfigs(session.currencyGroupId);
         const roundData = this.getCurrentRoundData(realPlayer);
         const gameSettings = { durations: this.definition.durations, suitesMapper: this.definition.suitesMapper };
+        const playerName = realPlayer.profile.name;
+        const tableData = this.gameData.ingame[playerName];
 
         return {
+            remainingTime: tableData.roundData ? roundData.remainingTime : this.definition.durations.timeline.transition,
             roundData: roundData.hand ? roundData : {},
             gameConfigs: configs,
             gameSettings,
@@ -46,12 +49,20 @@ export default class InGameConsumer extends TableInGameConsumer {
     getCurrentRoundData(realPlayer: RealPlayer) {
         const playerName = realPlayer.profile.name;
         const tableData = this.gameData.ingame[playerName];
+        const currentRound = tableData.roundData;
+        const invalidRemainingTime = -1;
+        let remainingTime = currentRound?.remainingTime;
+
+        if (currentRound && currentRound.remainingTime < 0) {
+            remainingTime = this.definition.durations.timeline.transition - currentRound.remainingTime;
+        }
 
         return {
-            submittedPlayers: tableData.roundData?.submittedPlayers,
-            remainingTime: tableData.roundData?.remainingTime,
-            roundId: tableData.roundData?.roundId,
-            hand: tableData.roundData?.result[realPlayer.session.playerId],
+            otherPlayers: currentRound?.otherPlayers,
+            submittedPlayers: currentRound?.submittedPlayers,
+            remainingTime: currentRound ? remainingTime : invalidRemainingTime,
+            roundId: currentRound?.roundId,
+            hand: currentRound?.result[realPlayer.session.playerId],
         };
     }
 

@@ -33,7 +33,7 @@ export default class PlaceBetConsumer extends BaseEventConsumers.PlaceBetConsume
             this.publisher.publishToUser(realPlayer.UID, {
                 um: this.gameData.disabled,
                 um_message: this.gameData.umMessages,
-                isPlaying: tableData.roundData,
+                isPlaying: tableData.roundData ? true : false,
                 isActive: !tableData.canDestroy,
             });
         }
