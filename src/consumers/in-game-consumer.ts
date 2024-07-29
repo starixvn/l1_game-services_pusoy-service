@@ -27,7 +27,6 @@ export default class InGameConsumer extends TableInGameConsumer {
         const rate = exchangeRates.code[session.currencyCode] * session.multiplier;
         const configs = this.getGameConfigs(session.currencyGroupId);
         const roundData = this.getCurrentRoundData(realPlayer);
-        const gameSettings = { durations: this.definition.durations, suitesMapper: this.definition.suitesMapper };
         const playerName = realPlayer.profile.name;
         const tableData = this.gameData.ingame[playerName];
 
@@ -35,15 +34,15 @@ export default class InGameConsumer extends TableInGameConsumer {
             remainingTime: tableData.roundData ? roundData.remainingTime : this.definition.durations.timeline.transition,
             roundData: roundData.hand ? roundData : {},
             gameConfigs: configs,
-            gameSettings,
             user: { ...user, rate },
         };
     }
 
     getGameConfigs(currencyGroupId: string) {
         const settings = this.gameData.currencyGroupGames.find((x) => x.groupId.toString() === currencyGroupId);
+        const gameSettings = { durations: this.definition.durations, suitesMapper: this.definition.suitesMapper };
 
-        return { ...settings };
+        return { ...settings, ...gameSettings };
     }
 
     getCurrentRoundData(realPlayer: RealPlayer) {
