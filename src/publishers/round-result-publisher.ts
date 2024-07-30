@@ -24,7 +24,7 @@ export default class RoundResultPublisher extends BaseEventPublishers.RoundResul
             result: info.result,
         };
 
-        this.publishToUser(info.socketId, finish);
+        this.publishToUser(info.socketId, { finish });
     }
 
     publishPusoyRound(info: any) {
@@ -34,6 +34,6 @@ export default class RoundResultPublisher extends BaseEventPublishers.RoundResul
             othersPlayers: info.othersPlayers,
         };
 
-        this.publishToUser(info.socketId, pusoyRound);
+        this.publishToUser(info.socketId, { pusoyRound });
     }
 }
