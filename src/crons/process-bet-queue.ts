@@ -9,9 +9,12 @@ import mongoose from "mongoose";
 import BaseMetrics from "sc-game-base/src/core/base-metrics";
 import * as Helper from "../helpers";
 import { NUMBER_OF_DEAL_HAND } from "../constants";
+import { RoundResultPublisher } from "../publishers";
+import { DealtRoundInfo } from "../publishers/round-result-publisher";
 
 export default class ProcessBetQueue extends TableProcessBetQueue {
     roundsRepository: mongoose.Model<any>;
+    roundResultPublisher: RoundResultPublisher;
 
     declare gameData: GameData;
     declare definition: GameDefinition;
@@ -27,6 +30,7 @@ export default class ProcessBetQueue extends TableProcessBetQueue {
         roundsRepository,
         gameManagementApiClientFactory,
         baseMetrics,
+        roundResultPublisher,
     }: {
         definition: GameDefinition;
         gameData: GameData;
@@ -38,6 +42,7 @@ export default class ProcessBetQueue extends TableProcessBetQueue {
         roundsRepository: mongoose.Model<any>;
         gameManagementApiClientFactory: GameManagementApiClientFactory;
         baseMetrics: BaseMetrics;
+        roundResultPublisher: RoundResultPublisher;
     }) {
         super({
             definition,
@@ -52,6 +57,7 @@ export default class ProcessBetQueue extends TableProcessBetQueue {
         });
 
         this.roundsRepository = roundsRepository;
+        this.roundResultPublisher = roundResultPublisher;
     }
 
     formatApiBetInfo(payload: BetPayload) {
@@ -81,6 +87,7 @@ export default class ProcessBetQueue extends TableProcessBetQueue {
         }
 
         if (tableData.roundData || !player.session) {
+            this.placeBetPublisher.publishGameFailedBet(player.UID, { endBet: -1 });
             return;
         }
 
@@ -198,7 +205,14 @@ export default class ProcessBetQueue extends TableProcessBetQueue {
             currentRound.result[bot.id] = botHand;
         });
 
-        this.placeBetPublisher.publishToUser(player.UID, { playerHand, roundId: currentRound.roundId });
+        const dealtHandsInfo: DealtRoundInfo = {
+            socketId: tableData.socketId,
+            playerHand,
+            roundId: currentRound.roundId,
+            othersPlayers: currentRound.otherPlayers,
+        };
+
+        this.roundResultPublisher.publishPusoyRound(dealtHandsInfo);
     }
 
     async updateHandResultToDatabase(tableName: string) {

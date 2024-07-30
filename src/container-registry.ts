@@ -7,6 +7,7 @@ import { betLogs, bets, rounds, tmpBets } from "./models";
 import Bot from "./crons/bot";
 import SocketRouter from "./router/socket-router";
 import BotArrangementConsumer from "./consumers/bot-arrangement-consumer";
+import { RoundResultPublisher } from "./publishers";
 
 export default class ContainerRegistry extends Table.TableContainerRegistry {
     register(appConfigs: any, definition: any, gameData: any): AwilixContainer<any> {
@@ -46,6 +47,14 @@ export default class ContainerRegistry extends Table.TableContainerRegistry {
             settleGameRoundConsumer: asClass(SettleGameRoundConsumer).singleton().proxy(),
             submitArrangementConsumer: asClass(SubmitArrangementConsumer).singleton(),
             botArrangementConsumer: asClass(BotArrangementConsumer).singleton(),
+        });
+    }
+
+    registerPublishers() {
+        super.registerPublishers();
+
+        this.container.register({
+            roundResultPublisher: asClass(RoundResultPublisher).singleton(),
         });
     }
 

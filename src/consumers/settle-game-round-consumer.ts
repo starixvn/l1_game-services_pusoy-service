@@ -4,6 +4,7 @@ import { Natural, Settlement as RawSettlement } from "@rd/pusoy-rules";
 import GameDefinition from "../game-definition";
 import GameData, { RoundOfTable, TableInGame } from "../game-data";
 import { Core } from "sc-game-base";
+import { RoundResultPublishInfo } from "../publishers/round-result-publisher";
 
 export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.SettleGameRoundConsumer {
     declare roundsRepository: mongoose.Model<IRound>;
@@ -61,7 +62,14 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
 
         await this.roundsRepository.updateOne({ id: round.roundId }, { settlementResult: settlementResult }).exec();
 
-        this.roundResultPublisher.publishToUser(tableData.socketId, { roundId: round.roundId, settlementResult: settlementResult });
+        const publishInfo: RoundResultPublishInfo = {
+            socketId: tableData.socketId,
+            roundId: round.roundId,
+            settlementResult: settlementResult,
+            result: round.result,
+        };
+
+        this.roundResultPublisher.publishRoundResult(publishInfo);
 
         return totalSettleEffectDuration;
     }
