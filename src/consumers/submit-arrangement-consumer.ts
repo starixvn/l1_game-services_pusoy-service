@@ -5,7 +5,7 @@ import mongoose from "mongoose";
 import GameData, { BotInRound, RoundOfTable, TableInGame } from "../game-data";
 import { isSameCards } from "../helpers";
 
-type SubmitPayload = {
+export type SubmitPayload = {
     playerId: string;
     playerName: string;
     hand: Hand<number[]>;
