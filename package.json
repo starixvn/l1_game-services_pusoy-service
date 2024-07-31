@@ -36,7 +36,8 @@
         "random-js": "^2.1.0",
         "sc-common": "^1.8.1",
         "sc-game-base": "5.1.0",
-        "sc-game-management-client": "^0.1.0"
+        "sc-game-management-client": "^0.1.0",
+        "socket.io": "^4.5.4"
     },
     "devDependencies": {
         "@babel/preset-env": "^7.23.9",

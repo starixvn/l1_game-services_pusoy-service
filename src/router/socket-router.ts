@@ -63,10 +63,10 @@ export default class SocketRouter extends BaseSocketRouter {
 
     init(socketClient: Socket<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap, any>): void {
         super.init(socketClient);
-        this.socketClient.on("submitArrangement", this.submitArrangement.bind(this));
+        this.socketClient.on("submitArrangement", this.handleSubmitArrangement.bind(this));
     }
 
-    async submitArrangement(payload: SubmitPayload) {
+    handleSubmitArrangement(payload: SubmitPayload) {
         try {
             if (!this.verify()) {
                 return;
@@ -76,5 +76,23 @@ export default class SocketRouter extends BaseSocketRouter {
         } catch (error) {
             this.logService.logError(error);
         }
+    }
+
+    verify(payload?: any) {
+        const realPlayer = this.gameData.realPlayers[this.socketClient.id];
+
+        if (!realPlayer) {
+            this.userSignInPublisher.publishUnauthorizedMessage(this.socketClient);
+            this.socketClient.disconnect(true);
+
+            this.logService.setTag({ id: "socket-io-id", value: this.socketClient.id });
+            this.logService.setTag({ id: "username", value: payload?.username });
+            this.logService.logError("User not found in server storage");
+            this.logService.setTag({ id: "socket-io-id", value: "" });
+            this.logService.setTag({ id: "username", value: "" });
+            return false;
+        }
+
+        return true;
     }
 }
