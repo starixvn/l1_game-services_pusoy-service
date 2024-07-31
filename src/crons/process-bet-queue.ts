@@ -209,7 +209,7 @@ export default class ProcessBetQueue extends TableProcessBetQueue {
             socketId: tableData.socketId,
             playerHand,
             roundId: currentRound.roundId,
-            othersPlayers: currentRound.otherPlayers,
+            otherPlayers: currentRound.otherPlayers,
         };
 
         this.roundResultPublisher.publishPusoyRound(dealtHandsInfo);

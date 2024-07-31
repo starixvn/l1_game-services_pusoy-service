@@ -13,7 +13,7 @@ export type DealtRoundInfo = {
     socketId: string;
     playerHand: any;
     roundId: number;
-    othersPlayers: BotInRound[];
+    otherPlayers: BotInRound[];
 };
 
 export default class RoundResultPublisher extends BaseEventPublishers.RoundResultPublisher {
@@ -27,11 +27,11 @@ export default class RoundResultPublisher extends BaseEventPublishers.RoundResul
         this.publishToUser(info.socketId, { finish });
     }
 
-    publishPusoyRound(info: any) {
+    publishPusoyRound(info: DealtRoundInfo) {
         const pusoyRound = {
             roundId: info.roundId,
             playerHand: info.playerHand,
-            othersPlayers: info.othersPlayers,
+            otherPlayers: info.otherPlayers,
         };
 
         this.publishToUser(info.socketId, { pusoyRound });
