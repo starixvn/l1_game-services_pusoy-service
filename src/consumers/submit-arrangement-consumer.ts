@@ -13,14 +13,14 @@ export type SubmitPayload = {
     submit: boolean;
 };
 export default class SubmitArrangementConsumer {
-    settleRoundResultConsumer: SettleGameRoundConsumer;
+    settleGameRoundConsumer: SettleGameRoundConsumer;
     roundsRepository: mongoose.Model<IRound>;
     roundIdConsumer: any;
     gameData: GameData;
 
-    constructor(settleRoundResultConsumer: SettleGameRoundConsumer, roundsRepository: mongoose.Model<IRound>, gameData: GameData) {
+    constructor(settleGameRoundConsumer: SettleGameRoundConsumer, roundsRepository: mongoose.Model<IRound>, gameData: GameData) {
         this.roundsRepository = roundsRepository;
-        this.settleRoundResultConsumer = settleRoundResultConsumer;
+        this.settleGameRoundConsumer = settleGameRoundConsumer;
         this.gameData = gameData;
     }
 
