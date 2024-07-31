@@ -32,7 +32,8 @@ export default class InGameConsumer extends TableInGameConsumer {
 
         return {
             remainingTime: tableData.roundData ? roundData.remainingTime : this.definition.durations.timeline.transition,
-            roundData: roundData.hand ? roundData : {},
+            pusoyRound: roundData.playerHand ? roundData : {},
+            submittedPlayers: roundData.submittedPlayers ?? [],
             gameConfigs: configs,
             user: { ...user, rate },
         };
@@ -61,7 +62,7 @@ export default class InGameConsumer extends TableInGameConsumer {
             submittedPlayers: currentRound?.submittedPlayers,
             remainingTime: currentRound ? remainingTime : invalidRemainingTime,
             roundId: currentRound?.roundId,
-            hand: currentRound?.result[realPlayer.session.playerId],
+            playerHand: currentRound?.result[realPlayer.session.playerId],
         };
     }
 
