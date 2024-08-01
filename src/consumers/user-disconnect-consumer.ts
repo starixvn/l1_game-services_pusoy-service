@@ -1,15 +1,18 @@
+import Bot from "../crons/bot";
 import GameData, { TableInGame } from "../game-data";
 import { Core } from "sc-game-base";
 
 export default class UserDisconnectConsumer extends Core.BaseEventConsumers.UserDisconnectConsumer {
     declare gameData: GameData;
+    bot: Bot;
 
-    constructor(gameData: GameData) {
+    constructor(gameData: GameData, bot: Bot) {
         super(gameData);
         this.gameData = gameData;
+        this.bot = bot;
     }
 
-    consume(socketClient: any) {
+    async consume(socketClient: any) {
         const realPlayer = this.gameData.realPlayers[socketClient.id];
 
         if (realPlayer) {
@@ -20,9 +23,10 @@ export default class UserDisconnectConsumer extends Core.BaseEventConsumers.User
         }
     }
 
-    updateOrDeleteTable(tableData: TableInGame) {
+    async updateOrDeleteTable(tableData: TableInGame) {
         if (tableData) {
             if (!tableData.roundData) {
+                await this.bot.removeBotsFromTable(tableData);
                 delete this.gameData.ingame[tableData.name];
             } else {
                 tableData.canDestroy = true;
