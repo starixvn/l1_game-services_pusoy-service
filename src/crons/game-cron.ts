@@ -158,6 +158,7 @@ export default class GameCron extends Table.Crons.TableGameCron {
             });
 
             if (tableInGame.canDestroy) {
+                this.bot.removeBotsFromTable(tableInGame);
                 delete this.gameData.ingame[tableInGame.name];
                 return;
             }
