@@ -9,6 +9,7 @@ export default {
             animation: 70,
         },
         animation: {
+            normal: 6,
             crack: 2,
             natural: 2,
             compareHands: 4,

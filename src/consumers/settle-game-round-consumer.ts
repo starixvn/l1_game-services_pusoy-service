@@ -22,15 +22,19 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
 
         const settlementResult: Record<string, Settlement> = {};
 
+        const durations = this.definition.durations;
+
         const settleEffectDuration = {
             natural: 0,
             fullPusoy: 0,
             crack: 0,
             mini: 0,
+            normal: 0,
         };
 
         const miniPusoySet: Set<string> = new Set();
-        const durations = this.definition.durations;
+        let numberPlayersCrack = 0;
+        let numberPlayersNatural = 0;
 
         settlements.forEach((settlement, index) => {
             settlementResult[handResults[index].playerId] = {
@@ -41,12 +45,14 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
 
             if (settlement.natural.name !== Natural.Unknown) {
                 settleEffectDuration.natural = durations.animation.natural;
+                numberPlayersNatural += 1;
             }
             if (settlement.pusoy.full > 0) {
                 settleEffectDuration.fullPusoy = durations.animation.pusoy.full;
             }
             if (settlement.crack.isCrack) {
                 settleEffectDuration.crack = durations.animation.crack;
+                numberPlayersCrack += 1;
             }
             if (settlement.pusoy.mini) {
                 Object.entries(settlement.pusoy.mini).forEach(([key, value]) => {
@@ -58,6 +64,12 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
         });
 
         settleEffectDuration.mini = miniPusoySet.size * durations.animation.pusoy.mini;
+
+        settleEffectDuration.normal =
+            numberPlayersCrack === settlements.length - 1 || numberPlayersNatural === settlements.length - 1
+                ? 0
+                : durations.animation.normal;
+
         const totalSettleEffectDuration = Object.values(settleEffectDuration).reduce((a, b) => a + b, 0);
 
         await this.roundsRepository.updateOne({ id: round.roundId }, { settlementResult: settlementResult }).exec();

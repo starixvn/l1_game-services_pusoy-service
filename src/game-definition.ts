@@ -25,6 +25,7 @@ export type Duration = BaseDuration & {
         animation: number;
     };
     animation: {
+        normal: number;
         crack: number;
         natural: number;
         compareHands: number;
