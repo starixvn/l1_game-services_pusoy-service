@@ -78,6 +78,7 @@ export default class BotArrangementConsumer {
             if (botArrangement.hand && roundData.remainingTime > 0) {
                 roundData.result[botArrangement.playerId].hand = botArrangement.hand;
                 roundData.result[botArrangement.playerId].time = new Date();
+                roundData.otherPlayers.filter((bot) => bot.id === botArrangement.playerId)[0].arrangeTime = botArrangement.arrangeTime;
 
                 await this.updateBotHandResultToDatabase(tableData, botArrangement.playerId);
             }

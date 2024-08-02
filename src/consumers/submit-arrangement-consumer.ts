@@ -51,6 +51,7 @@ export default class SubmitArrangementConsumer {
 
         return (
             data.roundId === currentRound.roundId &&
+            data.playerId === tableData.playerId &&
             currentRound &&
             !currentRound.realPlayerSubmitted &&
             isSameCards(currentRound.result[data.playerId].hand, data.hand)
