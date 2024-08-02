@@ -68,11 +68,6 @@ export default class Bot extends BaseBot {
             return;
         }
 
-        this.publisher.publishToUser(tableInGame.socketId, {
-            currentOtherPlayers: tableInGame.botsInTable,
-            tmpRemainingTime: tableInGame.roundData?.remainingTime ?? "invalid",
-        });
-
         const bots = await this.getBotsToJoin();
 
         bots.forEach((bot, index) => {

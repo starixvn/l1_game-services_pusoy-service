@@ -168,6 +168,7 @@ export default class GameCron extends Table.Crons.TableGameCron {
         }
 
         if (remainingTime === -currentRound.showingResultTime) {
+            this.gameStatusPublisher.publishToUser(tableInGame.socketId, { deleteRoundData: true });
             delete tableInGame.roundData;
         }
     }
