@@ -36,6 +36,7 @@ export type BotInRound = {
     red: number;
     avatarId: number;
     arrangeTime?: number;
+    slot?: number;
 };
 
 export type RoundOfTable = {
