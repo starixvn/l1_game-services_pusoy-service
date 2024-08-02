@@ -162,6 +162,7 @@ export default class ProcessBetQueue extends TableProcessBetQueue {
             result: {} as any,
             submittedPlayers: [],
             realPlayerSubmitted: false,
+            isSettled: false,
         };
 
         payload.roundId = this.gameData.roundId;

@@ -128,6 +128,13 @@ export default class GameCron extends Table.Crons.TableGameCron {
         }
 
         const currentRound = tableInGame.roundData;
+
+        if (tableInGame.canDestroy && currentRound.isSettled) {
+            this.bot.removeBotsFromTable(tableInGame);
+            delete this.gameData.ingame[tableInGame.name];
+            return;
+        }
+
         const numberOfPlayers = currentRound.otherPlayers.length + 1;
 
         const remainingTime = currentRound.remainingTime;
@@ -153,15 +160,11 @@ export default class GameCron extends Table.Crons.TableGameCron {
 
             currentRound.showingResultTime = await this.settleGameRoundConsumer.settleTable(tableInGame);
 
+            currentRound.isSettled = true;
+
             this.gameStatusPublisher.publishToUser(tableInGame.socketId, {
                 remainingTime: currentRound.showingResultTime + durations.timeline.transition,
             });
-
-            if (tableInGame.canDestroy) {
-                this.bot.removeBotsFromTable(tableInGame);
-                delete this.gameData.ingame[tableInGame.name];
-                return;
-            }
         }
 
         if (remainingTime === -currentRound.showingResultTime) {

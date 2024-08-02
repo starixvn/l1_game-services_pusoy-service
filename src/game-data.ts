@@ -47,4 +47,5 @@ export type RoundOfTable = {
     otherPlayers: BotInRound[];
     submittedPlayers: BotInRound[];
     realPlayerSubmitted: boolean;
+    isSettled: boolean;
 };
