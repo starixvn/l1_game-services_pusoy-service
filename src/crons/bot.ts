@@ -68,6 +68,11 @@ export default class Bot extends BaseBot {
             return;
         }
 
+        this.publisher.publishToUser(tableInGame.socketId, {
+            currentOtherPlayers: tableInGame.botsInTable,
+            tmpRemainingTime: tableInGame.roundData?.remainingTime ?? "invalid",
+        });
+
         const bots = await this.getBotsToJoin();
 
         bots.forEach((bot, index) => {
@@ -82,7 +87,7 @@ export default class Bot extends BaseBot {
 
         this.publisher.publishToUser(tableInGame.socketId, {
             otherPlayers: tableInGame.botsInTable,
-            tmpRemainingTime: tableInGame.roundData?.remainingTime,
+            tmpRemainingTime: tableInGame.roundData?.remainingTime ?? "invalid",
         });
     }
 
