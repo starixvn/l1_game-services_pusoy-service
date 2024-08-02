@@ -123,6 +123,8 @@ export default class GameCron extends Table.Crons.TableGameCron {
     }
 
     async proceedTableInGame(tableInGame: TableInGame, durations: Duration) {
+        this.gameStatusPublisher.publishToUser(tableInGame.socketId, { currentTableData: tableInGame });
+
         if (!tableInGame.roundData) {
             return;
         }
