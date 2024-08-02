@@ -155,7 +155,7 @@ export default class GameCron extends Table.Crons.TableGameCron {
             }
         });
 
-        if (remainingTime === 0 || currentRound.submittedPlayers.length === numberOfPlayers) {
+        if (remainingTime === 0 || (remainingTime > 0 && currentRound.submittedPlayers.length === numberOfPlayers)) {
             currentRound.remainingTime = -1;
 
             currentRound.showingResultTime = await this.settleGameRoundConsumer.settleTable(tableInGame);

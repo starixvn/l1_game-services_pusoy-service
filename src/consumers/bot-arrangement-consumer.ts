@@ -7,6 +7,7 @@ import Chance from "chance";
 import { HandResult, IRound } from "../models/rounds";
 import mongoose from "mongoose";
 import { logger } from "sc-common";
+import GameDefinition from "../game-definition";
 
 type BotArrangeMent = HandResult & { arrangeTime: number };
 
@@ -14,11 +15,13 @@ export default class BotArrangementConsumer {
     chance: Chance.Chance;
     roundsRepository: mongoose.Model<IRound>;
     logService: typeof logger;
+    definition: GameDefinition;
 
-    constructor(roundsRepository: mongoose.Model<IRound>, logService: typeof logger) {
+    constructor(roundsRepository: mongoose.Model<IRound>, logService: typeof logger, definition: GameDefinition) {
         this.chance = new Chance();
         this.roundsRepository = roundsRepository;
         this.logService = logService;
+        this.definition = definition;
     }
 
     getDataFromBotApi = async (cards: number[]): Promise<Hand<number[]>> => {
@@ -55,7 +58,9 @@ export default class BotArrangementConsumer {
 
         try {
             const hand = await retry(() => this.getDataFromBotApi(cards), retries, delay);
-            const arrangeTime = this.chance.integer({ min: 0, max: remainingTime });
+            const minArrangeDuration = 10;
+            const maxArrangeTime = Math.min(remainingTime, this.definition.durations.timeline.arrangement - minArrangeDuration);
+            const arrangeTime = this.chance.integer({ min: 0, max: maxArrangeTime });
 
             return {
                 playerId: result.playerId,

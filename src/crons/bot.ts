@@ -80,7 +80,10 @@ export default class Bot extends BaseBot {
             });
         });
 
-        this.publisher.publishToUser(tableInGame.socketId, { otherPlayers: tableInGame.botsInTable });
+        this.publisher.publishToUser(tableInGame.socketId, {
+            otherPlayers: tableInGame.botsInTable,
+            tmpRemainingTime: tableInGame.roundData?.remainingTime,
+        });
     }
 
     async removeBotsFromTable(tableInGame: TableInGame) {
