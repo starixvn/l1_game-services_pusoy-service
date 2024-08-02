@@ -4,6 +4,7 @@ import SettleGameRoundConsumer from "./settle-game-round-consumer";
 import mongoose from "mongoose";
 import GameData, { BotInRound, RoundOfTable, TableInGame } from "../game-data";
 import { isSameCards } from "../helpers";
+import { Core } from "sc-game-base";
 
 export type SubmitPayload = {
     playerId: string;
@@ -17,11 +18,18 @@ export default class SubmitArrangementConsumer {
     roundsRepository: mongoose.Model<IRound>;
     roundIdConsumer: any;
     gameData: GameData;
+    publisher: Core.BaseEventPublishers.BaseEventPublisher;
 
-    constructor(settleGameRoundConsumer: SettleGameRoundConsumer, roundsRepository: mongoose.Model<IRound>, gameData: GameData) {
+    constructor(
+        settleGameRoundConsumer: SettleGameRoundConsumer,
+        roundsRepository: mongoose.Model<IRound>,
+        gameData: GameData,
+        publisher: Core.BaseEventPublishers.BaseEventPublisher
+    ) {
         this.roundsRepository = roundsRepository;
         this.settleGameRoundConsumer = settleGameRoundConsumer;
         this.gameData = gameData;
+        this.publisher = publisher;
     }
 
     async consume(data: SubmitPayload) {
@@ -40,8 +48,11 @@ export default class SubmitArrangementConsumer {
                     name: data.playerName,
                 } as BotInRound);
 
+                this.publisher.publishToUser(tableData.socketId, { playerSubmitted: true });
                 await this.updatePlayerHandResultToDatabase(tableData, data.playerId);
             }
+        } else {
+            this.publisher.publishToUser(tableData.socketId, { validSubmitted: false });
         }
     }
 
