@@ -70,12 +70,13 @@ export default class Bot extends BaseBot {
 
         const bots = await this.getBotsToJoin();
 
-        bots.forEach((bot) => {
+        bots.forEach((bot, index) => {
             tableInGame.botsInTable.push({
                 id: bot.id,
                 name: bot.name,
                 red: bot.red,
                 avatarId: bot.avatarId,
+                slot: index + 1,
             });
         });
 

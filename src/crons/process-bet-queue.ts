@@ -202,8 +202,6 @@ export default class ProcessBetQueue extends TableProcessBetQueue {
         currentRound.result[player.session.playerId] = playerHand;
 
         currentRound.otherPlayers.forEach((bot, index) => {
-            bot.slot = index + 1;
-
             const botHand = {
                 hand: hands[index + 1],
                 playerId: bot.id,
