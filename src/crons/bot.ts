@@ -39,9 +39,9 @@ export default class Bot extends BaseBot {
             await this.addBotsToTableAndPublish(tableInGame);
         }
 
-        if (tableInGame.roundData && tableInGame.roundData.remainingTime < 0) {
-            await this.removeBotsFromTable(tableInGame);
-        }
+        // if (tableInGame.roundData && tableInGame.roundData.remainingTime < 0) {
+        //     await this.removeBotsFromTable(tableInGame);
+        // }
     }
 
     async getBotsToJoin(): Promise<UserInfos[]> {
