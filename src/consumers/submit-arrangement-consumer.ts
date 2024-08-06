@@ -42,13 +42,18 @@ export default class SubmitArrangementConsumer {
             currentRound.result[data.playerId].time = new Date();
 
             if (data.submit) {
-                currentRound.realPlayerSubmitted = true;
-                currentRound.submittedPlayers.push({
+                const playerInfo = {
                     id: data.playerId,
                     name: data.playerName,
-                } as BotInRound);
+                } as BotInRound;
 
-                this.publisher.publishToUser(tableData.socketId, { playerSubmitted: true });
+                currentRound.realPlayerSubmitted = true;
+                currentRound.submittedPlayers.push(playerInfo);
+
+                this.publisher.publishToUser(tableData.socketId, {
+                    submittedPlayer: playerInfo,
+                });
+
                 await this.updatePlayerHandResultToDatabase(tableData, data.playerId);
             }
         } else {
