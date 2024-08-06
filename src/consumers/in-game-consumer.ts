@@ -32,8 +32,8 @@ export default class InGameConsumer extends TableInGameConsumer {
 
         return {
             remainingTime: tableData.roundData ? roundData.remainingTime : this.definition.durations.timeline.transition,
-            pusoyRound: roundData.playerHand ? roundData : {},
             gameConfigs: configs,
+            pusoyRound: roundData.playerHand ? roundData : {},
             user: { ...user, rate },
         };
     }
