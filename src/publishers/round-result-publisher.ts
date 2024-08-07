@@ -6,6 +6,7 @@ export type RoundResultPublishInfo = {
     socketId: string;
     roundId: number;
     settlementResult: Record<string, Settlement>;
+    settleEffectDuration: Record<string, number>;
     result: { [playerId: string]: HandResult };
 };
 
@@ -22,6 +23,7 @@ export default class RoundResultPublisher extends BaseEventPublishers.RoundResul
             roundId: info.roundId,
             settlementResult: info.settlementResult,
             result: info.result,
+            settleEffectDuration: info.settleEffectDuration,
         };
 
         this.publishToUser(info.socketId, { finish });

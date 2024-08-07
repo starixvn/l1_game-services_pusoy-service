@@ -78,6 +78,7 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
             socketId: tableData.socketId,
             roundId: round.roundId,
             settlementResult: settlementResult,
+            settleEffectDuration: settleEffectDuration,
             result: round.result,
         };
 
