@@ -58,9 +58,10 @@ export default class BotArrangementConsumer {
 
         try {
             const hand = await retry(() => this.getDataFromBotApi(cards), retries, delay);
-            const minArrangeDuration = 10;
+            const minArrangeDuration = 5;
             const maxArrangeTime = Math.min(remainingTime, this.definition.durations.timeline.arrangement - minArrangeDuration);
-            const arrangeTime = this.chance.integer({ min: 0, max: maxArrangeTime });
+            const minArrangeTime = Math.max(0, maxArrangeTime - minArrangeDuration);
+            const arrangeTime = this.chance.integer({ min: minArrangeTime, max: maxArrangeTime });
 
             return {
                 playerId: result.playerId,
