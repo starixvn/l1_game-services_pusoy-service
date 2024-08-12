@@ -33,5 +33,6 @@ export type Duration = BaseDuration & {
             mini: number;
             full: number;
         };
+        chipFly: number;
     };
 };

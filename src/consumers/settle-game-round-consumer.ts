@@ -30,6 +30,7 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
             crack: 0,
             mini: 0,
             normal: 0,
+            chipFly: 0,
         };
 
         const miniPusoySet: Set<string> = new Set();
@@ -64,6 +65,8 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
         });
 
         settleEffectDuration.mini = miniPusoySet.size * durations.animation.pusoy.mini;
+
+        settleEffectDuration.chipFly = durations.animation.chipFly;
 
         settleEffectDuration.normal =
             numberPlayersCrack === settlements.length - 1 || numberPlayersNatural === settlements.length - 1

@@ -17,6 +17,7 @@ export default {
                 mini: 2,
                 full: 2,
             },
+            chipFly: 5,
         },
     },
     provablyFair: false,
