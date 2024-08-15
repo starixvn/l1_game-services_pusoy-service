@@ -5,6 +5,7 @@ import mongoose from "mongoose";
 import GameData, { BotInRound, RoundOfTable, TableInGame } from "../game-data";
 import { isSameCards } from "../helpers";
 import { Core } from "sc-game-base";
+import GameDefinition from "../game-definition";
 
 export type SubmitPayload = {
     playerId: string;
@@ -13,23 +14,32 @@ export type SubmitPayload = {
     roundId: number;
     submit: boolean;
 };
+
+export type ReArrangePayload = {
+    playerId: string;
+    playerName: string;
+};
+
 export default class SubmitArrangementConsumer {
     settleGameRoundConsumer: SettleGameRoundConsumer;
     roundsRepository: mongoose.Model<IRound>;
     roundIdConsumer: any;
     gameData: GameData;
     publisher: Core.BaseEventPublishers.BaseEventPublisher;
+    gameDefinition: GameDefinition;
 
     constructor(
         settleGameRoundConsumer: SettleGameRoundConsumer,
         roundsRepository: mongoose.Model<IRound>,
         gameData: GameData,
-        publisher: Core.BaseEventPublishers.BaseEventPublisher
+        publisher: Core.BaseEventPublishers.BaseEventPublisher,
+        gameDefinition: GameDefinition
     ) {
         this.roundsRepository = roundsRepository;
         this.settleGameRoundConsumer = settleGameRoundConsumer;
         this.gameData = gameData;
         this.publisher = publisher;
+        this.gameDefinition = gameDefinition;
     }
 
     async consume(data: SubmitPayload) {
@@ -59,6 +69,26 @@ export default class SubmitArrangementConsumer {
         } else {
             this.publisher.publishToUser(tableData.socketId, { validSubmitted: false });
         }
+    }
+
+    consumeReArrangeCards(data: { playerId: string; playerName: string }) {
+        const tableData = this.gameData.ingame[data.playerName];
+        const currentRound = tableData.roundData as RoundOfTable;
+        let canReArrange = false;
+
+        if (currentRound.remainingTime <= this.gameDefinition.durations.timeline.arrangement && currentRound.remainingTime > 0) {
+            currentRound.submittedPlayers = currentRound.submittedPlayers.filter((player) => player.id !== data.playerId);
+            currentRound.realPlayerSubmitted = false;
+            canReArrange = true;
+        }
+
+        this.publisher.publishToUser(tableData.socketId, {
+            reArrangePlayers: {
+                playerId: data.playerId,
+                playerName: data.playerName,
+                canReArrange: canReArrange,
+            },
+        });
     }
 
     isValidSubmit(data: SubmitPayload) {
