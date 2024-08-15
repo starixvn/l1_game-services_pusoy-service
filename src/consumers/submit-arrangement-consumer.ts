@@ -26,20 +26,20 @@ export default class SubmitArrangementConsumer {
     roundIdConsumer: any;
     gameData: GameData;
     publisher: Core.BaseEventPublishers.BaseEventPublisher;
-    gameDefinition: GameDefinition;
+    definition: GameDefinition;
 
     constructor(
         settleGameRoundConsumer: SettleGameRoundConsumer,
         roundsRepository: mongoose.Model<IRound>,
         gameData: GameData,
         publisher: Core.BaseEventPublishers.BaseEventPublisher,
-        gameDefinition: GameDefinition
+        definition: GameDefinition
     ) {
         this.roundsRepository = roundsRepository;
         this.settleGameRoundConsumer = settleGameRoundConsumer;
         this.gameData = gameData;
         this.publisher = publisher;
-        this.gameDefinition = gameDefinition;
+        this.definition = definition;
     }
 
     async consume(data: SubmitPayload) {
@@ -76,7 +76,7 @@ export default class SubmitArrangementConsumer {
         const currentRound = tableData.roundData as RoundOfTable;
         let canRearrange = false;
 
-        if (currentRound.remainingTime <= this.gameDefinition.durations.timeline.arrangement && currentRound.remainingTime > 0) {
+        if (currentRound.remainingTime <= this.definition.durations.timeline.arrangement && currentRound.remainingTime > 0) {
             currentRound.submittedPlayers = currentRound.submittedPlayers.filter((player) => player.id !== data.playerId);
             currentRound.realPlayerSubmitted = false;
             canRearrange = true;
