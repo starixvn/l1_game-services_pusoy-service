@@ -9,7 +9,7 @@ import { logger } from "sc-common";
 import { PlayGamePermissionValidator } from "sc-game-base/src/core/validators";
 import { HistoryQuery, RoundQuery } from "sc-game-base/src/core/query-apis";
 import { SubmitArrangementConsumer } from "../consumers";
-import { ReArrangePayload, SubmitPayload } from "../consumers/submit-arrangement-consumer";
+import { RearrangePayload, SubmitPayload } from "../consumers/submit-arrangement-consumer";
 
 export default class SocketRouter extends BaseSocketRouter {
     declare gameData: GameData;
@@ -64,7 +64,7 @@ export default class SocketRouter extends BaseSocketRouter {
     init(socketClient: Socket<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap, any>): void {
         super.init(socketClient);
         this.socketClient.on("submitArrangement", this.handleSubmitArrangement.bind(this));
-        this.socketClient.on("reArrange", this.handleSubmitReArrange.bind(this));
+        this.socketClient.on("rearrange", this.handleSubmitRearrange.bind(this));
     }
 
     handleSubmitArrangement(payload: SubmitPayload) {
@@ -79,13 +79,13 @@ export default class SocketRouter extends BaseSocketRouter {
         }
     }
 
-    handleSubmitReArrange(payload: ReArrangePayload) {
+    handleSubmitRearrange(payload: RearrangePayload) {
         try {
             if (!this.verify()) {
                 return;
             }
 
-            this.submitArrangementConsumer.consumeReArrangeCards(payload);
+            this.submitArrangementConsumer.consumeRearrangeCards(payload);
         } catch (error) {
             this.logService.logError(error);
         }

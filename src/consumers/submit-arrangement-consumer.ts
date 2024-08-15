@@ -15,7 +15,7 @@ export type SubmitPayload = {
     submit: boolean;
 };
 
-export type ReArrangePayload = {
+export type RearrangePayload = {
     playerId: string;
     playerName: string;
 };
@@ -71,22 +71,22 @@ export default class SubmitArrangementConsumer {
         }
     }
 
-    consumeReArrangeCards(data: { playerId: string; playerName: string }) {
+    consumeRearrangeCards(data: { playerId: string; playerName: string }) {
         const tableData = this.gameData.ingame[data.playerName];
         const currentRound = tableData.roundData as RoundOfTable;
-        let canReArrange = false;
+        let canRearrange = false;
 
         if (currentRound.remainingTime <= this.gameDefinition.durations.timeline.arrangement && currentRound.remainingTime > 0) {
             currentRound.submittedPlayers = currentRound.submittedPlayers.filter((player) => player.id !== data.playerId);
             currentRound.realPlayerSubmitted = false;
-            canReArrange = true;
+            canRearrange = true;
         }
 
         this.publisher.publishToUser(tableData.socketId, {
-            reArrangePlayer: {
+            rearrangePlayer: {
                 playerId: data.playerId,
                 playerName: data.playerName,
-                canReArrange: canReArrange,
+                canRearrange: canRearrange,
             },
         });
     }
