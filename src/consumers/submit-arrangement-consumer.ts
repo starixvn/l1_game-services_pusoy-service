@@ -83,7 +83,7 @@ export default class SubmitArrangementConsumer {
         }
 
         this.publisher.publishToUser(tableData.socketId, {
-            reArrangePlayers: {
+            reArrangePlayer: {
                 playerId: data.playerId,
                 playerName: data.playerName,
                 canReArrange: canReArrange,
