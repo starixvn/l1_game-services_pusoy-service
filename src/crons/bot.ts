@@ -5,7 +5,7 @@ import { shuffle } from "../helpers";
 import GameDefinition from "../game-definition";
 import Chance from "chance";
 import { BaseBot } from "sc-game-base/src/core/crons";
-import { NUMBER_OF_BOTS } from "../constants";
+import { BOT_SLOTS, MAX_BOTS_ON_TABLE } from "../constants";
 import { BaseEventPublishers } from "sc-game-base/src/core";
 import { IRound } from "../models/rounds";
 import mongoose from "mongoose";
@@ -35,17 +35,13 @@ export default class Bot extends BaseBot {
     }
 
     async handleBotsInTable(tableInGame: TableInGame) {
-        if (tableInGame.botsInTable.length < 1) {
-            await this.addBotsToTableAndPublish(tableInGame);
+        if (tableInGame.botsInTable.length < MAX_BOTS_ON_TABLE) {
+            this.addBotsToTableAndPublish(tableInGame);
         }
-
-        // if (tableInGame.roundData && tableInGame.roundData.remainingTime < 0) {
-        //     await this.removeBotsFromTable(tableInGame);
-        // }
     }
 
-    async getBotsToJoin(): Promise<UserInfos[]> {
-        const bots = await getOrDefault(this.gameManagementApiClient.users.getAllBots(NUMBER_OF_BOTS, true), []);
+    async getBotsToJoin(numberOfBots: number): Promise<UserInfos[]> {
+        const bots = await getOrDefault(this.gameManagementApiClient.users.getAllBots(numberOfBots, true), []);
 
         if (bots.length > 0) {
             await post(
@@ -64,19 +60,34 @@ export default class Bot extends BaseBot {
     }
 
     async addBotsToTableAndPublish(tableInGame: TableInGame) {
-        if (tableInGame.botsInTable.length > 0) {
+        if (tableInGame.freeBotSlots.length === 0) {
             return;
         }
 
-        const bots = await this.getBotsToJoin();
+        const numberOfBots = this.chance.integer({ min: 0, max: tableInGame.freeBotSlots.length });
 
-        bots.forEach((bot, index) => {
+        if (numberOfBots === 0) {
+            return;
+        }
+
+        const timeToJoin = this.chance.integer({ min: 1, max: 3 });
+
+        if (tableInGame.roundData?.remainingTime && tableInGame.roundData.remainingTime % timeToJoin !== 0) {
+            return;
+        }
+
+        const bots = await this.getBotsToJoin(numberOfBots);
+
+        bots.forEach((bot) => {
+            const slot = this.chance.pickone(tableInGame.freeBotSlots);
+            tableInGame.freeBotSlots = tableInGame.freeBotSlots.filter((s) => s !== slot);
+
             tableInGame.botsInTable.push({
                 id: bot.id,
                 name: bot.name,
                 red: bot.red,
                 avatarId: bot.avatarId,
-                slot: index + 1,
+                slot: slot,
             });
         });
 
@@ -85,9 +96,32 @@ export default class Bot extends BaseBot {
         });
     }
 
-    async removeBotsFromTable(tableInGame: TableInGame) {
+    async removeAllBotsFromTable(tableInGame: TableInGame) {
         const botIds = tableInGame.botsInTable.map((bot) => bot.id);
         this.removeBots(botIds);
         tableInGame.botsInTable = [];
+        tableInGame.freeBotSlots = BOT_SLOTS;
+    }
+
+    async removeSomeBotsFromTable(tableInGame: TableInGame) {
+        const botIds = tableInGame.botsInTable.map((bot) => bot.id);
+
+        const numberOfBotsToRemove = this.chance.integer({ min: 0, max: botIds.length });
+
+        if (numberOfBotsToRemove === 0) {
+            return;
+        }
+
+        const botsToRemove = this.chance.pickset(botIds, numberOfBotsToRemove);
+
+        this.removeBots(botsToRemove);
+
+        tableInGame.botsInTable = tableInGame.botsInTable.filter((bot) => !botsToRemove.includes(bot.id));
+        const currentBotSlots = tableInGame.botsInTable.map((bot) => bot.slot);
+        tableInGame.freeBotSlots = BOT_SLOTS.filter((slot) => !currentBotSlots.includes(slot));
+
+        this.publisher.publishToUser(tableInGame.socketId, {
+            otherPlayers: tableInGame.botsInTable,
+        });
     }
 }

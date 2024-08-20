@@ -24,6 +24,7 @@ export type TableInGame = {
     playerId: string;
     socketId: string;
     botsInTable: BotInRound[];
+    freeBotSlots: number[];
 };
 
 export type InGameData = {

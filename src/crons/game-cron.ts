@@ -130,7 +130,7 @@ export default class GameCron extends Table.Crons.TableGameCron {
         const currentRound = tableInGame.roundData;
 
         if (tableInGame.canDestroy && currentRound.isSettled) {
-            this.bot.removeBotsFromTable(tableInGame);
+            await this.bot.removeAllBotsFromTable(tableInGame);
             delete this.gameData.ingame[tableInGame.name];
             return;
         }
@@ -168,7 +168,7 @@ export default class GameCron extends Table.Crons.TableGameCron {
         }
 
         if (remainingTime === -currentRound.showingResultTime) {
-            await this.bot.removeBotsFromTable(tableInGame);
+            this.bot.removeSomeBotsFromTable(tableInGame);
             delete tableInGame.roundData;
         }
     }

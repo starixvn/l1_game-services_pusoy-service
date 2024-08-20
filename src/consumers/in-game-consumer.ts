@@ -2,6 +2,7 @@ import { TableInGameConsumer } from "sc-game-base/src/table/event-consumers";
 import GameData, { BotInRound, RealPlayer, TableInGame } from "../game-data";
 import GameDefinition from "../game-definition";
 import scoreConfig from "../score-config";
+import { BOT_SLOTS } from "../constants";
 export default class InGameConsumer extends TableInGameConsumer {
     declare gameData: GameData;
     declare definition: GameDefinition;
@@ -78,6 +79,7 @@ export default class InGameConsumer extends TableInGameConsumer {
             betQueue: [],
             operatorId: realPlayer.session.operatorId,
             botsInTable: [] as BotInRound[],
+            freeBotSlots: BOT_SLOTS,
         } as TableInGame;
 
         if (tableData?.roundData && tableData.roundData.remainingTime > 0) {
