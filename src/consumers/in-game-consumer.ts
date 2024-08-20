@@ -1,6 +1,7 @@
 import { TableInGameConsumer } from "sc-game-base/src/table/event-consumers";
 import GameData, { BotInRound, RealPlayer, TableInGame } from "../game-data";
 import GameDefinition from "../game-definition";
+import scoreConfig from "../score-config";
 export default class InGameConsumer extends TableInGameConsumer {
     declare gameData: GameData;
     declare definition: GameDefinition;
@@ -40,7 +41,7 @@ export default class InGameConsumer extends TableInGameConsumer {
 
     getGameConfigs(currencyGroupId: string) {
         const settings = this.gameData.currencyGroupGames.find((x) => x.groupId.toString() === currencyGroupId);
-        const gameSettings = { durations: this.definition.durations, suitesMapper: this.definition.suitesMapper };
+        const gameSettings = { durations: this.definition.durations, suitesMapper: this.definition.suitesMapper, scoreConfig: scoreConfig };
 
         return { ...settings, ...gameSettings };
     }

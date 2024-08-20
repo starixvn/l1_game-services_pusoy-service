@@ -155,6 +155,7 @@ describe("InGameConsumer tests", () => {
                 } as any,
                 submittedPlayers: [],
                 realPlayerSubmitted: false,
+                isSettled: false,
             } as RoundOfTable;
 
             const tableData = {
@@ -254,6 +255,7 @@ describe("InGameConsumer tests", () => {
                     } as any,
                     submittedPlayers: [],
                     realPlayerSubmitted: false,
+                    isSettled: false,
                 } as RoundOfTable;
 
                 consumer.gameData.ingame["player3"] = {
