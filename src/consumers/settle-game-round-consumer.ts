@@ -33,13 +33,13 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
             chipFly: 0,
         };
 
-        const miniPusoySet: Set<string> = new Set();
+        let isHavingMiniPusoy = false;
         let numberPlayersCrack = 0;
         let numberPlayersNatural = 0;
 
         settlements.forEach((settlement, index) => {
             if (settlement.natural.name !== Natural.Unknown) {
-                settleEffectDuration.natural = durations.animation.natural;
+                settleEffectDuration.natural += durations.animation.natural;
                 numberPlayersNatural += 1;
             }
             if (settlement.pusoy.full > 0) {
@@ -57,8 +57,8 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
                     mini[miniSlot] = value;
                     settlement.pusoy.mini = mini;
 
-                    if (value > 0) {
-                        miniPusoySet.add(key);
+                    if (!isHavingMiniPusoy && value > 0) {
+                        isHavingMiniPusoy = true;
                     }
                 });
             }
@@ -70,7 +70,7 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
             };
         });
 
-        settleEffectDuration.mini = miniPusoySet.size * durations.animation.pusoy.mini;
+        settleEffectDuration.mini = isHavingMiniPusoy ? durations.animation.pusoy.mini : 0;
 
         settleEffectDuration.chipFly = durations.animation.chipFly;
 
