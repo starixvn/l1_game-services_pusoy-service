@@ -38,12 +38,6 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
         let numberPlayersNatural = 0;
 
         settlements.forEach((settlement, index) => {
-            settlementResult[handResults[index].playerId] = {
-                ...settlement,
-                playerId: handResults[index].playerId,
-                slot: handResults[index].slot,
-            };
-
             if (settlement.natural.name !== Natural.Unknown) {
                 settleEffectDuration.natural = durations.animation.natural;
                 numberPlayersNatural += 1;
@@ -56,12 +50,24 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
                 numberPlayersCrack += 1;
             }
             if (settlement.pusoy.mini) {
+                const mini: { [key: string]: number } = {};
+
                 Object.entries(settlement.pusoy.mini).forEach(([key, value]) => {
+                    const miniSlot = handResults[+key].slot;
+                    mini[miniSlot] = value;
+                    settlement.pusoy.mini = mini;
+
                     if (value > 0) {
                         miniPusoySet.add(key);
                     }
                 });
             }
+
+            settlementResult[handResults[index].playerId] = {
+                ...settlement,
+                playerId: handResults[index].playerId,
+                slot: handResults[index].slot,
+            };
         });
 
         settleEffectDuration.mini = miniPusoySet.size * durations.animation.pusoy.mini;
