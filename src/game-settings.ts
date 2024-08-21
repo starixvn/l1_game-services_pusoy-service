@@ -21,4 +21,14 @@ export default {
     },
     provablyFair: false,
     suitesMapper: { 0: "spade", 1: "heart", 2: "club", 3: "diamond" },
+    botSettings: {
+        amountJoinConfigs: {
+            numberOfBots: [0, 1, 2, 3],
+            rate: [0.6, 0.25, 0.1, 0.05],
+        },
+        amountLeaveConfigs: {
+            numberOfBots: [0, 1, 2, 3],
+            rate: [0.6, 0.25, 0.1, 0.05],
+        },
+    },
 };

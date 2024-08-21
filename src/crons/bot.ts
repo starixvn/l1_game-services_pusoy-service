@@ -60,19 +60,12 @@ export default class Bot extends BaseBot {
     }
 
     async addBotsToTableAndPublish(tableInGame: TableInGame) {
-        if (tableInGame.freeBotSlots.length === 0) {
-            return;
-        }
-
-        const numberOfBots = this.chance.integer({ min: 0, max: tableInGame.freeBotSlots.length });
+        const numberOfBots = Math.min(
+            this.chance.weighted(this.definition.botSettings.joinConfigs.numberOfBots, this.definition.botSettings.joinConfigs.rate),
+            tableInGame.freeBotSlots.length
+        );
 
         if (numberOfBots === 0) {
-            return;
-        }
-
-        const timeToJoin = this.chance.integer({ min: 1, max: 3 });
-
-        if (tableInGame.roundData?.remainingTime && tableInGame.roundData.remainingTime % timeToJoin !== 0) {
             return;
         }
 
@@ -106,7 +99,10 @@ export default class Bot extends BaseBot {
     async removeSomeBotsFromTable(tableInGame: TableInGame) {
         const botIds = tableInGame.botsInTable.map((bot) => bot.id);
 
-        const numberOfBotsToRemove = this.chance.integer({ min: 0, max: botIds.length });
+        const numberOfBotsToRemove = Math.min(
+            this.chance.weighted(this.definition.botSettings.leaveConfigs.numberOfBots, this.definition.botSettings.leaveConfigs.rate),
+            botIds.length
+        );
 
         if (numberOfBotsToRemove === 0) {
             return;
