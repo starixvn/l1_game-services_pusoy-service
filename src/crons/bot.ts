@@ -1,6 +1,6 @@
 import GameManagementApiClientFactory, { getOrDefault, post } from "sc-game-base/src/core/game-management-api";
 import { UserInfos } from "sc-game-management-client";
-import GameData, { TableInGame } from "../game-data";
+import GameData, { BotInRound, TableInGame } from "../game-data";
 import { shuffle } from "../helpers";
 import GameDefinition from "../game-definition";
 import Chance from "chance";
@@ -18,6 +18,7 @@ export default class Bot extends BaseBot {
     chance: Chance.Chance;
     roundsRepository: mongoose.Model<IRound>;
     logService: typeof logger;
+    botsInGame: BotInRound[] = [];
 
     constructor(
         gameManagementApiClientFactory: GameManagementApiClientFactory,
@@ -56,20 +57,28 @@ export default class Bot extends BaseBot {
     }
 
     async removeBots(botIds: string[]) {
+        this.botsInGame = this.botsInGame.filter((bot) => !botIds.includes(bot.id));
         await post(this.gameManagementApiClient.users.updateBotsOutRoom({ botIds }));
     }
+
+    async updateBotList() {}
 
     async addBotsToTableAndPublish(tableInGame: TableInGame) {
         const numberOfBots = Math.min(
             this.chance.weighted(this.definition.botSettings.joinConfigs.numberOfBots, this.definition.botSettings.joinConfigs.rate),
-            tableInGame.freeBotSlots.length
+            tableInGame.freeBotSlots.length,
+            this.maxNumberOfBots - this.botsInGame.length
         );
 
-        if (numberOfBots === 0) {
+        if (numberOfBots < 1) {
             return;
         }
 
         const bots = await this.getBotsToJoin(numberOfBots);
+
+        if (bots.length === 0) {
+            return;
+        }
 
         bots.forEach((bot) => {
             const slot = this.chance.pickone(tableInGame.freeBotSlots);
@@ -83,6 +92,8 @@ export default class Bot extends BaseBot {
                 slot: slot,
             });
         });
+
+        this.botsInGame.push(...tableInGame.botsInTable);
 
         this.publisher.publishToUser(tableInGame.socketId, {
             otherPlayers: tableInGame.botsInTable,

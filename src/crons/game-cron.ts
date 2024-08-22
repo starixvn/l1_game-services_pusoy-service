@@ -111,6 +111,9 @@ export default class GameCron extends Table.Crons.TableGameCron {
 
         if (remainingTime === 0) {
             this.gameData.remainingTime = durations.timeline.animation;
+            this.bot?.reset();
+
+            console.log("bots in game: ", this.bot.botsInGame);
         }
 
         await Promise.all(
