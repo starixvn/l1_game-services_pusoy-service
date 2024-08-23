@@ -1,7 +1,7 @@
 import mongoose from "mongoose";
 
 export interface IBot {
-    botId: number;
+    botId: string;
     name: string;
     botUrl: string;
     score: number;

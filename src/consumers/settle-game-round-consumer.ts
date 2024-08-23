@@ -5,11 +5,50 @@ import GameDefinition from "../game-definition";
 import GameData, { RoundOfTable, TableInGame } from "../game-data";
 import { Core } from "sc-game-base";
 import { RoundResultPublishInfo } from "../publishers/round-result-publisher";
+import { RoundResultPublisher, UserBetResultPublisher } from "sc-game-base/src/core/event-publishers";
+import GameManagementApiClientFactory from "sc-game-base/src/core/game-management-api";
+import { IBot } from "../models/bots";
 
 export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.SettleGameRoundConsumer {
     declare roundsRepository: mongoose.Model<IRound>;
     declare gameData: GameData;
     declare definition: GameDefinition;
+    botsRepository: mongoose.Model<IBot>;
+
+    constructor({
+        definition,
+        gameData,
+        roundResultPublisher,
+        userBetResultPublisher,
+        endGame,
+        roundsRepository,
+        betsRepository,
+        gameManagementApiClientFactory,
+        botsRepository,
+    }: {
+        definition: GameDefinition;
+        gameData: GameData;
+        roundResultPublisher: RoundResultPublisher;
+        userBetResultPublisher: UserBetResultPublisher;
+        endGame: any;
+        roundsRepository: mongoose.Model<IRound>;
+        betsRepository: mongoose.Model<any>;
+        gameManagementApiClientFactory: GameManagementApiClientFactory;
+        botsRepository: mongoose.Model<IBot>;
+    }) {
+        super({
+            definition,
+            gameData,
+            roundResultPublisher,
+            userBetResultPublisher,
+            endGame,
+            roundsRepository,
+            betsRepository,
+            gameManagementApiClientFactory,
+        });
+
+        this.botsRepository = botsRepository;
+    }
 
     async settleTable(tableData: TableInGame) {
         const round = tableData.roundData as RoundOfTable;
@@ -68,6 +107,8 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
                 playerId: handResults[index].playerId,
                 slot: handResults[index].slot,
             };
+
+            this.updateBotScore(tableData, settlementResult[handResults[index].playerId]);
         });
 
         settleEffectDuration.mini = isHavingMiniPusoy ? durations.animation.pusoy.mini : 0;
@@ -94,5 +135,17 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
         this.roundResultPublisher.publishRoundResult(publishInfo);
 
         return totalSettleEffectDuration;
+    }
+
+    async updateBotScore(tableData: TableInGame, settlementResult: Settlement) {
+        const roundData = tableData.roundData as RoundOfTable;
+
+        const filter = { roundId: roundData.roundId, botId: settlementResult.playerId };
+
+        const update = {
+            score: settlementResult.sum,
+        };
+
+        await this.botsRepository.findOneAndUpdate(filter, update).exec();
     }
 }
