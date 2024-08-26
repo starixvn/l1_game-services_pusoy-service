@@ -171,7 +171,7 @@ export default class GameCron extends Table.Crons.TableGameCron {
         }
 
         if (remainingTime === -currentRound.showingResultTime) {
-            this.bot.removeSomeBotsFromTable(tableInGame);
+            await this.bot.removeSomeBotsFromTable(tableInGame);
             delete tableInGame.roundData;
         }
     }

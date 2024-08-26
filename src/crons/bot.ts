@@ -102,7 +102,7 @@ export default class Bot extends BaseBot {
 
     async removeAllBotsFromTable(tableInGame: TableInGame) {
         const botIds = tableInGame.botsInTable.map((bot) => bot.id);
-        this.removeBots(botIds);
+        await this.removeBots(botIds);
         tableInGame.botsInTable = [];
         tableInGame.freeBotSlots = BOT_SLOTS;
     }
@@ -121,7 +121,7 @@ export default class Bot extends BaseBot {
 
         const botsToRemove = this.chance.pickset(botIds, numberOfBotsToRemove);
 
-        this.removeBots(botsToRemove);
+        await this.removeBots(botsToRemove);
 
         tableInGame.botsInTable = tableInGame.botsInTable.filter((bot) => !botsToRemove.includes(bot.id));
         const currentBotSlots = tableInGame.botsInTable.map((bot) => bot.slot);
