@@ -1,15 +1,20 @@
+import { RealPlayer } from "./../game-data";
 import Bot from "../crons/bot";
 import GameData, { TableInGame } from "../game-data";
 import { Core } from "sc-game-base";
+import mongoose from "mongoose";
+import { ISurvey } from "../models/survey";
 
 export default class UserDisconnectConsumer extends Core.BaseEventConsumers.UserDisconnectConsumer {
     declare gameData: GameData;
     bot: Bot;
+    surveyRepository: mongoose.Model<ISurvey>;
 
-    constructor(gameData: GameData, bot: Bot) {
+    constructor(gameData: GameData, bot: Bot, surveyRepository: mongoose.Model<ISurvey>) {
         super(gameData);
         this.gameData = gameData;
         this.bot = bot;
+        this.surveyRepository = surveyRepository;
     }
 
     async consume(socketClient: any) {
@@ -18,6 +23,7 @@ export default class UserDisconnectConsumer extends Core.BaseEventConsumers.User
         if (realPlayer) {
             const tableData = this.gameData.ingame[realPlayer.profile.name];
 
+            this.updateSurvey(realPlayer);
             this.updateOrDeleteTable(tableData);
             super.consume(socketClient);
         }
@@ -33,5 +39,13 @@ export default class UserDisconnectConsumer extends Core.BaseEventConsumers.User
                 tableData.socketId = "";
             }
         }
+    }
+
+    async updateSurvey(realPlayer: RealPlayer) {
+        const filter = { playerId: realPlayer.session.playerId };
+
+        const survey = { playerId: realPlayer.session.playerId, playerName: realPlayer.profile.name };
+
+        await this.surveyRepository.updateOne(filter, { $setOnInsert: survey }, { upsert: true });
     }
 }

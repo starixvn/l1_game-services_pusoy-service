@@ -2,8 +2,15 @@ import { asClass, asValue, AwilixContainer } from "awilix";
 import { Table } from "sc-game-base";
 import GameCron from "./crons/game-cron";
 import ProcessBetQueue from "./crons/process-bet-queue";
-import { InGameConsumer, PlaceBetConsumer, SettleGameRoundConsumer, SubmitArrangementConsumer, UserDisconnectConsumer } from "./consumers";
-import { betLogs, bets, rounds, tmpBets, bots } from "./models";
+import {
+    InGameConsumer,
+    PlaceBetConsumer,
+    SettleGameRoundConsumer,
+    SubmitArrangementConsumer,
+    SurveyConsumer,
+    UserDisconnectConsumer,
+} from "./consumers";
+import { betLogs, bets, rounds, tmpBets, bots, survey } from "./models";
 import Bot from "./crons/bot";
 import SocketRouter from "./router/socket-router";
 import BotArrangementConsumer from "./consumers/bot-arrangement-consumer";
@@ -25,6 +32,7 @@ export default class ContainerRegistry extends Table.TableContainerRegistry {
             tempBetsRepository: asValue(tmpBets),
             betLogsRepository: asValue(betLogs),
             botsRepository: asValue(bots),
+            surveyRepository: asValue(survey),
         });
     }
 
@@ -48,6 +56,7 @@ export default class ContainerRegistry extends Table.TableContainerRegistry {
             settleGameRoundConsumer: asClass(SettleGameRoundConsumer).singleton().proxy(),
             submitArrangementConsumer: asClass(SubmitArrangementConsumer).singleton(),
             botArrangementConsumer: asClass(BotArrangementConsumer).singleton(),
+            surveyConsumer: asClass(SurveyConsumer).singleton(),
         });
     }
 

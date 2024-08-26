@@ -8,14 +8,16 @@ import { UserSignInPublisher } from "sc-game-base/src/core/event-publishers";
 import { logger } from "sc-common";
 import { PlayGamePermissionValidator } from "sc-game-base/src/core/validators";
 import { HistoryQuery, RoundQuery } from "sc-game-base/src/core/query-apis";
-import { SubmitArrangementConsumer } from "../consumers";
+import { SubmitArrangementConsumer, SurveyConsumer } from "../consumers";
 import { RearrangePayload, SubmitPayload } from "../consumers/submit-arrangement-consumer";
+import { SurveyPayload } from "../consumers/survey-consumer";
 
 export default class SocketRouter extends BaseSocketRouter {
     declare gameData: GameData;
     declare definition: GameDefinition;
 
     submitArrangementConsumer: SubmitArrangementConsumer;
+    surveyConsumer: SurveyConsumer;
 
     constructor({
         definition,
@@ -30,6 +32,7 @@ export default class SocketRouter extends BaseSocketRouter {
         playGamePermissionValidator,
         roundQuery,
         submitArrangementConsumer,
+        surveyConsumer,
     }: {
         definition: GameDefinition;
         gameData: GameData;
@@ -43,6 +46,7 @@ export default class SocketRouter extends BaseSocketRouter {
         playGamePermissionValidator: PlayGamePermissionValidator;
         roundQuery: RoundQuery;
         submitArrangementConsumer: SubmitArrangementConsumer;
+        surveyConsumer: SurveyConsumer;
     }) {
         super({
             definition,
@@ -59,12 +63,14 @@ export default class SocketRouter extends BaseSocketRouter {
         });
 
         this.submitArrangementConsumer = submitArrangementConsumer;
+        this.surveyConsumer = surveyConsumer;
     }
 
     init(socketClient: Socket<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap, any>): void {
         super.init(socketClient);
         this.socketClient.on("submitArrangement", this.handleSubmitArrangement.bind(this));
         this.socketClient.on("rearrange", this.handleSubmitRearrange.bind(this));
+        this.socketClient.on("survey", this.surveyConsumer.consume.bind(this));
     }
 
     handleSubmitArrangement(payload: SubmitPayload) {
@@ -86,6 +92,18 @@ export default class SocketRouter extends BaseSocketRouter {
             }
 
             this.submitArrangementConsumer.consumeRearrangeCards(payload);
+        } catch (error) {
+            this.logService.logError(error);
+        }
+    }
+
+    handleUpdateSurvey(payload: SurveyPayload) {
+        try {
+            if (!this.verify()) {
+                return;
+            }
+
+            this.surveyConsumer.consume(this.socketClient, payload);
         } catch (error) {
             this.logService.logError(error);
         }
