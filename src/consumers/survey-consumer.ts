@@ -2,18 +2,21 @@ import { RealPlayer } from "./../game-data";
 import GameData from "../game-data";
 import mongoose from "mongoose";
 import { ISurvey } from "../models/survey";
+import { Core } from "sc-game-base";
 
 export type SurveyPayload = {
     wishToPlayWithRealMoney: boolean;
 };
 
 export default class SurveyConsumer {
-    declare gameData: GameData;
+    gameData: GameData;
     surveyRepository: mongoose.Model<ISurvey>;
+    publisher: Core.BaseEventPublishers.BaseEventPublisher;
 
-    constructor(gameData: GameData, surveyRepository: mongoose.Model<ISurvey>) {
+    constructor(gameData: GameData, surveyRepository: mongoose.Model<ISurvey>, publisher: Core.BaseEventPublishers.BaseEventPublisher) {
         this.gameData = gameData;
         this.surveyRepository = surveyRepository;
+        this.publisher = publisher;
     }
 
     async consume(socketClient: any, payload: SurveyPayload) {
@@ -33,6 +36,7 @@ export default class SurveyConsumer {
             wishToPlayWithRealMoney: payload.wishToPlayWithRealMoney,
         });
 
-        await this.surveyRepository.findOneAndUpdate(filter, survey.toObject(), { upsert: true }).exec();
+        await this.surveyRepository.updateOne(filter, survey.toObject(), { upsert: true }).exec();
+        this.publisher.publishToUser(realPlayer.UID, { surveyUpdated: true });
     }
 }
