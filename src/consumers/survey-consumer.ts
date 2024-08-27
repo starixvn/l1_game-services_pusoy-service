@@ -27,12 +27,12 @@ export default class SurveyConsumer {
     async updateSurvey(realPlayer: RealPlayer, payload: SurveyPayload) {
         const filter = { playerId: realPlayer.session.playerId };
 
-        const survey = {
+        const survey = new this.surveyRepository({
             playerId: realPlayer.session.playerId,
             playerName: realPlayer.profile.name,
             wishToPlayWithRealMoney: payload.wishToPlayWithRealMoney,
-        };
+        });
 
-        await this.surveyRepository.findOneAndUpdate(filter, survey, { upsert: true }).exec();
+        await this.surveyRepository.findOneAndUpdate(filter, survey.toObject(), { upsert: true }).exec();
     }
 }

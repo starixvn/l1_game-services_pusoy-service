@@ -44,8 +44,8 @@ export default class UserDisconnectConsumer extends Core.BaseEventConsumers.User
     async updateSurvey(realPlayer: RealPlayer) {
         const filter = { playerId: realPlayer.session.playerId };
 
-        const survey = { playerId: realPlayer.session.playerId, playerName: realPlayer.profile.name };
+        const survey = new this.surveyRepository({ playerId: realPlayer.session.playerId, playerName: realPlayer.profile.name });
 
-        await this.surveyRepository.updateOne(filter, { $setOnInsert: survey }, { upsert: true });
+        await this.surveyRepository.updateOne(filter, { $setOnInsert: survey.toObject() }, { upsert: true });
     }
 }
