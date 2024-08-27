@@ -84,16 +84,18 @@ export default class Bot extends BaseBot {
             const slot = this.chance.pickone(tableInGame.freeBotSlots);
             tableInGame.freeBotSlots = tableInGame.freeBotSlots.filter((s) => s !== slot);
 
-            tableInGame.botsInTable.push({
+            const newBot = {
                 id: bot.id,
                 name: bot.name,
                 red: bot.red,
                 avatarId: bot.avatarId,
                 slot: slot,
-            });
+            };
+
+            tableInGame.botsInTable.push(newBot);
+            this.botsInGame.push(newBot);
         });
 
-        this.botsInGame.push(...tableInGame.botsInTable);
         console.log(
             "add bots: ",
             this.botsInGame.length,
