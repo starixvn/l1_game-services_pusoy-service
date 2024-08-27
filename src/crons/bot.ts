@@ -94,6 +94,11 @@ export default class Bot extends BaseBot {
         });
 
         this.botsInGame.push(...tableInGame.botsInTable);
+        console.log(
+            "add bots: ",
+            this.botsInGame.length,
+            this.botsInGame.map((bot) => bot.name)
+        );
 
         this.publisher.publishToUser(tableInGame.socketId, {
             otherPlayers: tableInGame.botsInTable,
