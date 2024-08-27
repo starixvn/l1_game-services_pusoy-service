@@ -36,7 +36,10 @@ export default class SurveyConsumer {
             wishToPlayWithRealMoney: payload.wishToPlayWithRealMoney,
         });
 
-        await this.surveyRepository.updateOne(filter, survey.toObject(), { upsert: true }).exec();
+        const surveyData = survey.toObject();
+        delete surveyData._id;
+
+        await this.surveyRepository.updateOne(filter, surveyData, { upsert: true }).exec();
         this.publisher.publishToUser(realPlayer.UID, { surveyUpdated: true });
     }
 }
