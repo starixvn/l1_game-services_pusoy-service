@@ -70,7 +70,7 @@ export default class SocketRouter extends BaseSocketRouter {
         super.init(socketClient);
         this.socketClient.on("submitArrangement", this.handleSubmitArrangement.bind(this));
         this.socketClient.on("rearrange", this.handleSubmitRearrange.bind(this));
-        this.socketClient.on("survey", this.surveyConsumer.consume.bind(this));
+        this.socketClient.on("survey", this.handleUpdateSurvey.bind(this));
     }
 
     handleSubmitArrangement(payload: SubmitPayload) {
