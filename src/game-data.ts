@@ -25,6 +25,7 @@ export type TableInGame = {
     socketId: string;
     botsInTable: BotInRound[];
     freeBotSlots: number[];
+    balance: number;
 };
 
 export type InGameData = {
@@ -38,6 +39,7 @@ export type BotInRound = {
     avatarId: number;
     arrangeTime?: number;
     slot: number;
+    balance: number;
 };
 
 export type RoundOfTable = {

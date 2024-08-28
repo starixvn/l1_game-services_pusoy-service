@@ -2,7 +2,7 @@ import { IRound, Settlement } from "../models/rounds";
 import mongoose from "mongoose";
 import { Natural, Settlement as RawSettlement } from "@rd/pusoy-rules";
 import GameDefinition from "../game-definition";
-import GameData, { RoundOfTable, TableInGame } from "../game-data";
+import GameData, { BotInRound, RoundOfTable, TableInGame } from "../game-data";
 import { Core } from "sc-game-base";
 import { RoundResultPublishInfo } from "../publishers/round-result-publisher";
 import { RoundResultPublisher, UserBetResultPublisher } from "sc-game-base/src/core/event-publishers";
@@ -109,6 +109,8 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
             };
 
             this.updateBotScore(tableData, settlementResult[handResults[index].playerId]);
+
+            this.updateBalance(tableData, settlementResult[handResults[index].playerId]);
         });
 
         settleEffectDuration.mini = isHavingMiniPusoy ? durations.animation.pusoy.mini : 0;
@@ -147,5 +149,19 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
         };
 
         await this.botsRepository.findOneAndUpdate(filter, update).exec();
+    }
+
+    updateBalance(tableData: TableInGame, settlementResult: Settlement) {
+        const roundData = tableData.roundData as RoundOfTable;
+
+        const bot = roundData.otherPlayers.find((bot) => bot.id === settlementResult.playerId);
+
+        if (bot) {
+            bot.balance += settlementResult.sum;
+        }
+
+        if (tableData.playerId === settlementResult.playerId) {
+            tableData.balance += settlementResult.sum;
+        }
     }
 }

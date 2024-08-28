@@ -93,6 +93,7 @@ export default class InGameConsumer extends TableInGameConsumer {
             remainingTime: currentRound ? remainingTime : invalidRemainingTime,
             roundId: currentRound?.roundId,
             playerHand: currentRound?.result[realPlayer.session.playerId],
+            playerBalance: tableData.balance,
         };
     }
 
@@ -109,6 +110,7 @@ export default class InGameConsumer extends TableInGameConsumer {
             operatorId: realPlayer.session.operatorId,
             botsInTable: [] as BotInRound[],
             freeBotSlots: BOT_SLOTS,
+            balance: 1000,
         } as TableInGame;
 
         if (tableData?.roundData && tableData.roundData.remainingTime > 0) {

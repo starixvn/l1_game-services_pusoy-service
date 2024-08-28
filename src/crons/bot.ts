@@ -98,6 +98,7 @@ export default class Bot extends BaseBot {
                 red: bot.red,
                 avatarId: bot.avatarId,
                 slot: slot,
+                balance: 1000,
             };
 
             tableInGame.botsInTable.push(newBot);
