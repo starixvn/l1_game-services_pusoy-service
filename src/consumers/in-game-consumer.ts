@@ -2,13 +2,13 @@ import { TableInGameConsumer } from "sc-game-base/src/table/event-consumers";
 import GameData, { BotInRound, RealPlayer, TableInGame } from "../game-data";
 import GameDefinition from "../game-definition";
 import scoreConfig from "../score-config";
-import { BOT_SLOTS } from "../constants";
 import GameManagementApiClientFactory from "sc-game-base/src/core/game-management-api";
 import { Core } from "sc-game-base";
 import { RoundQuery } from "sc-game-base/src/core/query-apis";
 import { ISurvey } from "../models/survey";
 import mongoose from "mongoose";
 
+import { BOT_SLOTS, DEFAULT_BALANCE } from "../constants";
 export default class InGameConsumer extends TableInGameConsumer {
     declare gameData: GameData;
     declare definition: GameDefinition;
@@ -110,7 +110,7 @@ export default class InGameConsumer extends TableInGameConsumer {
             operatorId: realPlayer.session.operatorId,
             botsInTable: [] as BotInRound[],
             freeBotSlots: BOT_SLOTS,
-            balance: 1000,
+            balance: DEFAULT_BALANCE,
         } as TableInGame;
 
         if (tableData?.roundData && tableData.roundData.remainingTime > 0) {

@@ -5,7 +5,7 @@ import { shuffle } from "../helpers";
 import GameDefinition from "../game-definition";
 import Chance from "chance";
 import { BaseBot } from "sc-game-base/src/core/crons";
-import { BOT_SLOTS, MAX_BOTS_ON_TABLE } from "../constants";
+import { BOT_SLOTS, DEFAULT_BALANCE, MAX_BOTS_ON_TABLE } from "../constants";
 import { BaseEventPublishers } from "sc-game-base/src/core";
 import { IRound } from "../models/rounds";
 import mongoose from "mongoose";
@@ -98,7 +98,7 @@ export default class Bot extends BaseBot {
                 red: bot.red,
                 avatarId: bot.avatarId,
                 slot: slot,
-                balance: 1000,
+                balance: DEFAULT_BALANCE,
             };
 
             tableInGame.botsInTable.push(newBot);
