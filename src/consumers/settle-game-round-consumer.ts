@@ -115,10 +115,14 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
 
         settleEffectDuration.mini = isHavingMiniPusoy ? durations.animation.pusoy.mini : 0;
 
-        settleEffectDuration.chipFly = durations.animation.chipFly;
+        const tie = settlements.every((settlement) => settlement.sum === 0);
+
+        settleEffectDuration.chipFly = tie ? 0 : durations.animation.chipFly;
 
         settleEffectDuration.normal =
-            numberPlayersCrack === settlements.length - 1 || numberPlayersNatural === settlements.length - 1
+            numberPlayersCrack === settlements.length - 1 ||
+            numberPlayersNatural === settlements.length - 1 ||
+            numberPlayersCrack + numberPlayersNatural === settlements.length - 1
                 ? 0
                 : durations.animation.normal;
 

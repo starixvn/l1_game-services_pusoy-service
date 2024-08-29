@@ -11,7 +11,7 @@ export default {
         animation: {
             normal: 6,
             crack: 2,
-            natural: 2,
+            natural: 3,
             pusoy: {
                 mini: 5,
                 full: 5,
