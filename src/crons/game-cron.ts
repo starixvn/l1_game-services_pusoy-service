@@ -118,6 +118,10 @@ export default class GameCron extends Table.Crons.TableGameCron {
                 this.bot.botsInGame.length,
                 this.bot.botsInGame.map((bot) => bot.name)
             );
+
+            const tableNames = Object.keys(this.gameData.ingame);
+            console.log("number of tables: ", tableNames.length);
+            console.log("table names: ", tableNames);
         }
 
         await Promise.all(
@@ -137,6 +141,7 @@ export default class GameCron extends Table.Crons.TableGameCron {
         const currentRound = tableInGame.roundData;
 
         if (tableInGame.canDestroy && currentRound.isSettled) {
+            console.log("destroying table: ", tableInGame.name);
             await this.bot.removeAllBotsFromTable(tableInGame);
             delete this.gameData.ingame[tableInGame.name];
             return;
@@ -148,6 +153,7 @@ export default class GameCron extends Table.Crons.TableGameCron {
         currentRound.remainingTime--;
 
         if (remainingTime === durations.timeline.deal) {
+            console.log("start dealing cards: ", tableInGame.name);
             this.gameStatusPublisher.publishToUser(tableInGame.socketId, { startDeal: true, remainingTime });
         }
 
@@ -175,6 +181,7 @@ export default class GameCron extends Table.Crons.TableGameCron {
         }
 
         if (remainingTime === -currentRound.showingResultTime) {
+            console.log("showing result: ", tableInGame.name);
             await this.bot.removeSomeBotsFromTable(tableInGame);
             delete tableInGame.roundData;
         }

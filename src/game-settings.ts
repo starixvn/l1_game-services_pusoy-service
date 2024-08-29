@@ -24,11 +24,11 @@ export default {
     botSettings: {
         joinConfigs: {
             numberOfBots: [0, 1, 2, 3],
-            rate: [0.6, 0.25, 0.1, 0.05],
+            rate: [0.7, 0.25, 0.04, 0.01],
         },
         leaveConfigs: {
             numberOfBots: [0, 1, 2, 3],
-            rate: [0.6, 0.25, 0.1, 0.05],
+            rate: [0.7, 0.25, 0.04, 0.01],
         },
     },
 };
