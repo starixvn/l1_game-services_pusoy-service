@@ -3,9 +3,29 @@ import GameData, { BotInRound, RealPlayer, TableInGame } from "../game-data";
 import GameDefinition from "../game-definition";
 import scoreConfig from "../score-config";
 import { BOT_SLOTS } from "../constants";
+import GameManagementApiClientFactory from "sc-game-base/src/core/game-management-api";
+import { Core } from "sc-game-base";
+import { RoundQuery } from "sc-game-base/src/core/query-apis";
+import { ISurvey } from "../models/survey";
+import mongoose from "mongoose";
+
 export default class InGameConsumer extends TableInGameConsumer {
     declare gameData: GameData;
     declare definition: GameDefinition;
+    surveyRepository: mongoose.Model<ISurvey>;
+
+    constructor(
+        definition: GameDefinition,
+        gameData: GameData,
+        roundQuery: RoundQuery,
+        publisher: Core.BaseEventPublishers.BaseEventPublisher,
+        getBalance: any,
+        gameManagementApiClientFactory: GameManagementApiClientFactory,
+        surveyRepository: mongoose.Model<ISurvey>
+    ) {
+        super(definition, gameData, roundQuery, publisher, getBalance, gameManagementApiClientFactory);
+        this.surveyRepository = surveyRepository;
+    }
 
     async consume(realPlayer: RealPlayer) {
         const { gameConfigs } = this.gameData;
@@ -31,6 +51,7 @@ export default class InGameConsumer extends TableInGameConsumer {
         const roundData = this.getCurrentRoundData(realPlayer);
         const playerName = realPlayer.profile.name;
         const tableData = this.gameData.ingame[playerName];
+        const surveyStatus = await this.getSurveyStatus(realPlayer.session.playerId);
 
         return {
             remainingTime: tableData.roundData ? roundData.remainingTime : this.definition.durations.timeline.transition,
@@ -38,6 +59,7 @@ export default class InGameConsumer extends TableInGameConsumer {
             pusoyRound: roundData.playerHand ? roundData : {},
             otherPlayers: tableData.botsInTable || [],
             user: { ...user, rate },
+            surveyUpdated: surveyStatus,
         };
     }
 
@@ -46,6 +68,12 @@ export default class InGameConsumer extends TableInGameConsumer {
         const gameSettings = { durations: this.definition.durations, suitesMapper: this.definition.suitesMapper, scoreConfig: scoreConfig };
 
         return { ...settings, ...gameSettings };
+    }
+
+    async getSurveyStatus(playerId: string) {
+        const survey = await this.surveyRepository.findOne({ playerId });
+
+        return survey ? survey.wishToPlayWithRealMoney : false;
     }
 
     getCurrentRoundData(realPlayer: RealPlayer) {
