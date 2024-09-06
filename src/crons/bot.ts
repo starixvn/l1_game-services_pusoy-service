@@ -57,6 +57,8 @@ export default class Bot extends BaseBot {
     }
 
     async removeBots(botIds: string[]) {
+        console.log("remove bots: ", botIds);
+
         this.botsInGame = this.botsInGame.filter((bot) => !botIds.includes(bot.id));
         await post(this.gameManagementApiClient.users.updateBotsOutRoom({ botIds }));
     }
@@ -78,7 +80,7 @@ export default class Bot extends BaseBot {
 
         const bots = await this.getBotsToJoin(numberOfBots);
 
-        if (bots.length === 0) {
+        if (bots.length === 0 || !this.gameData.ingame[tableInGame.name]) {
             return;
         }
 
@@ -103,6 +105,12 @@ export default class Bot extends BaseBot {
 
             tableInGame.botsInTable.push(newBot);
             this.botsInGame.push(newBot);
+
+            console.log(
+                "(add bots) bots in game: ",
+                this.botsInGame.length,
+                this.botsInGame.map((bot) => bot.name)
+            );
         });
 
         this.publisher.publishToUser(tableInGame.socketId, {

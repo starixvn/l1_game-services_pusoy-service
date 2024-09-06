@@ -33,6 +33,8 @@ export default class UserDisconnectConsumer extends Core.BaseEventConsumers.User
         if (tableData) {
             if (!tableData.roundData) {
                 await this.bot.removeAllBotsFromTable(tableData);
+
+                console.log("delete table: ", tableData.name);
                 delete this.gameData.ingame[tableData.name];
             } else {
                 tableData.canDestroy = true;
