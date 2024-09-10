@@ -21,6 +21,7 @@ export type TableInGame = {
     operatorId: string;
     betProcessing: boolean;
     canDestroy: boolean;
+    canAddBot: boolean;
     playerId: string;
     socketId: string;
     botsInTable: BotInRound[];

@@ -31,6 +31,8 @@ export default class UserDisconnectConsumer extends Core.BaseEventConsumers.User
 
     async updateOrDeleteTable(tableData: TableInGame) {
         if (tableData) {
+            tableData.canAddBot = false;
+
             if (!tableData.roundData) {
                 await this.bot.removeAllBotsFromTable(tableData);
 

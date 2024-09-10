@@ -36,7 +36,7 @@ export default class Bot extends BaseBot {
     }
 
     async handleBotsInTable(tableInGame: TableInGame) {
-        if (tableInGame.botsInTable.length < MAX_BOTS_ON_TABLE) {
+        if (tableInGame.botsInTable.length < MAX_BOTS_ON_TABLE && tableInGame.canAddBot) {
             this.addBotsToTableAndPublish(tableInGame);
         }
     }
@@ -80,7 +80,7 @@ export default class Bot extends BaseBot {
 
         const bots = await this.getBotsToJoin(numberOfBots);
 
-        if (bots.length === 0 || !this.gameData.ingame[tableInGame.name]) {
+        if (bots.length === 0 || !this.gameData.ingame[tableInGame.name] || !tableInGame.canAddBot) {
             return;
         }
 

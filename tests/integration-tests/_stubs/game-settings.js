@@ -11,7 +11,8 @@ export default Object.assign(gameSettings, {
         animation: {
             crack: 1,
             natural: 1,
-            compareHands: 1,
+            natural: 1,
+            normal: 1,
             pusoy: {
                 mini: 1,
                 full: 1,

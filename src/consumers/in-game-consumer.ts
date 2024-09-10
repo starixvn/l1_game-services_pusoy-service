@@ -101,6 +101,7 @@ export default class InGameConsumer extends TableInGameConsumer {
         const tableData = this.gameData.ingame[realPlayer.profile.name];
         const newTable = {
             canDestroy: false,
+            canAddBot: true,
             socketId: realPlayer.UID,
             playerId: realPlayer.session.playerId,
             name: realPlayer.profile.name,
@@ -117,6 +118,7 @@ export default class InGameConsumer extends TableInGameConsumer {
             tableData.socketId = realPlayer.UID;
             tableData.playerId = realPlayer.session.playerId;
             tableData.canDestroy = false;
+            tableData.canAddBot = true;
         } else {
             this.gameData.ingame[realPlayer.profile.name] = newTable;
         }
