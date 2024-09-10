@@ -6,11 +6,11 @@ const scoreConfig = {
     natural: [
         {
             name: Natural.Dragon,
-            units: 12,
+            units: 13,
         },
         {
             name: Natural.SixPairs,
-            units: 6,
+            units: 3,
         },
         {
             name: Natural.ThreeFlushes,
