@@ -8,6 +8,7 @@ import { ProvablyFairConsumer, UnsettledRoundConsumer } from "sc-game-base/src/c
 import SettleGameConsumer from "../consumers/settle-game-round-consumer";
 import Bot from "../crons/bot";
 import BotArrangementConsumer from "../consumers/bot-arrangement-consumer";
+import { MAX_BOTS_ON_TABLE } from "../constants";
 
 export default class GameCron extends Table.Crons.TableGameCron {
     roundsRepository: mongoose.Model<any>;
@@ -120,8 +121,14 @@ export default class GameCron extends Table.Crons.TableGameCron {
             );
 
             const tableNames = Object.keys(this.gameData.ingame);
+
             console.log("number of tables: ", tableNames.length);
             console.log("table names: ", tableNames);
+
+            if (this.bot.botsInGame.length > tableNames.length * MAX_BOTS_ON_TABLE) {
+                this.bot.botsInGame = this.bot.botsInGame.slice(0, tableNames.length * MAX_BOTS_ON_TABLE);
+                this.logService.logError(`Number of bots in game is more than expected`);
+            }
         }
 
         await Promise.all(
