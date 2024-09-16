@@ -1,6 +1,5 @@
 import { Hand } from "@rd/pusoy-rules";
 import { IRound } from "../models/rounds";
-import SettleGameRoundConsumer from "./settle-game-round-consumer";
 import mongoose from "mongoose";
 import GameData, { BotInRound, RoundOfTable, TableInGame } from "../game-data";
 import { isSameCards } from "../helpers";
@@ -21,7 +20,6 @@ export type RearrangePayload = {
 };
 
 export default class SubmitArrangementConsumer {
-    settleGameRoundConsumer: SettleGameRoundConsumer;
     roundsRepository: mongoose.Model<IRound>;
     roundIdConsumer: any;
     gameData: GameData;
@@ -29,14 +27,12 @@ export default class SubmitArrangementConsumer {
     definition: GameDefinition;
 
     constructor(
-        settleGameRoundConsumer: SettleGameRoundConsumer,
         roundsRepository: mongoose.Model<IRound>,
         gameData: GameData,
         publisher: Core.BaseEventPublishers.BaseEventPublisher,
         definition: GameDefinition
     ) {
         this.roundsRepository = roundsRepository;
-        this.settleGameRoundConsumer = settleGameRoundConsumer;
         this.gameData = gameData;
         this.publisher = publisher;
         this.definition = definition;

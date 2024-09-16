@@ -4,6 +4,10 @@ import GameDefinition from "../../../src/game-definition";
 import GameData, { RealPlayer, RoundOfTable, TableInGame } from "../../../src/game-data";
 import { Core } from "sc-game-base";
 import GameManagementApiClientFactory from "sc-game-base/src/core/game-management-api";
+import mongoose from "mongoose";
+import { ISurvey } from "../../../src/models/survey";
+import scoreConfig from "../../../src/score-config";
+import { BOT_SLOTS, DEFAULT_BALANCE } from "../../../src/constants";
 
 describe("InGameConsumer tests", () => {
     const definition = stub<GameDefinition>();
@@ -12,11 +16,24 @@ describe("InGameConsumer tests", () => {
     const publisher = stub<Core.BaseEventPublishers.BaseEventPublisher>();
     const getBalance = jest.fn();
     const gameManagementApiClientFactory = stub<GameManagementApiClientFactory>();
+    const surveyRepository = stub<mongoose.Model<ISurvey>>();
 
     let consumer: InGameConsumer;
 
     beforeEach(() => {
-        consumer = new InGameConsumer(definition, gameData, roundQuery, publisher, getBalance, gameManagementApiClientFactory);
+        consumer = new InGameConsumer(
+            definition,
+            gameData,
+            roundQuery,
+            publisher,
+            getBalance,
+            gameManagementApiClientFactory,
+            surveyRepository
+        );
+    });
+
+    afterEach(() => {
+        jest.clearAllMocks();
     });
 
     describe("buildPayload", () => {
@@ -40,31 +57,43 @@ describe("InGameConsumer tests", () => {
             consumer.gameData.currencyGroupGames = currencyGroupGames;
             const exchangeRates = { code: { USD: 1 } };
             consumer.gameData.exchangeRates = exchangeRates;
-            consumer.gameData.ingame = {};
             const realPlayer = {
-                profile: { name: "player" },
+                profile: { name: "player1" },
                 session: { currencyCode: "USD", multiplier: 1, currencyGroupId: "group" },
             } as RealPlayer;
 
             const user = { name: "John Doe" };
             const roundData = {
                 roundId: 1,
-                hand: {
+                playerHand: {
                     front: [],
                     middle: [],
                     back: [],
                 },
+                remainingTime: 10,
             };
+
+            const tableData = {
+                roundData,
+                balance: 1000,
+                botsInTable: ["bot1", "bot2"],
+            };
+
+            consumer.gameData.ingame = {
+                player1: tableData,
+            } as any;
 
             consumer.getUserInfo = jest.fn().mockReturnValue(user);
             consumer.getGameConfigs = jest.fn().mockReturnValue(gameConfigs);
             consumer.getCurrentRoundData = jest.fn().mockReturnValue(roundData);
 
             const expectedPayload = {
-                roundData,
+                remainingTime: roundData.remainingTime,
                 gameConfigs,
-                gameSettings,
+                pusoyRound: roundData,
+                otherPlayers: tableData.botsInTable,
                 user: { ...user, rate: 1 },
+                surveyUpdated: false,
             };
 
             // act
@@ -102,28 +131,60 @@ describe("InGameConsumer tests", () => {
             expect(consumer.buildPayload).toHaveBeenCalledWith(realPlayer);
             expect(consumer.publisher.publishToUser).toHaveBeenCalled();
         });
+
+        it("should not proceed if the game is disabled", async () => {
+            // arrange
+            const realPlayer = {
+                UID: "2",
+                profile: { name: "player2" },
+                session: { currencyCode: "USD", multiplier: 1, currencyGroupId: "group" },
+            } as RealPlayer;
+            consumer.gameData.gameConfigs = { enabled: false } as any;
+
+            realPlayer.socketClient = { emit: jest.fn() } as any;
+
+            consumer.definition.name = "pusoy";
+            consumer.gameData.umMessages = "game_disabled";
+
+            consumer.initOrUpdateTable = jest.fn();
+            consumer.buildPayload = jest.fn().mockResolvedValue({});
+            consumer.publisher.publishToUser = jest.fn();
+
+            // act
+            await consumer.consume(realPlayer);
+
+            // assert
+            expect(realPlayer.socketClient.emit).toHaveBeenCalledWith(consumer.definition.name, {
+                um: true,
+                um_message: "game_disabled",
+            });
+            expect(consumer.initOrUpdateTable).not.toHaveBeenCalled();
+            expect(consumer.buildPayload).toHaveBeenCalled();
+            expect(consumer.publisher.publishToUser).toHaveBeenCalled();
+        });
     });
 
     describe("getGameConfigs", () => {
         it("should return game configs for given currency group id", () => {
             // arrange
             const currencyGroupId = "group1";
-            const gameConfigs = {
-                odds: { choice1: 0, choice2: 0 },
-                enableFreeBet: false,
-                enabled: true,
-            };
 
             const currencyGroupGames = [{ groupId: "group1", maxBet: { choice1: 2000, choice2: 2000 } }];
             consumer.gameData.currencyGroupGames = currencyGroupGames;
 
-            consumer.gameData.gameConfigs = gameConfigs as any;
+            consumer.definition = {
+                durations: { timeline: { transition: 10 } },
+                suitesMapper: { 0: "spade", 1: "heart", 2: "club", 3: "diamond" },
+                scoreConfig,
+            } as any;
+
+            const expectResult = { ...currencyGroupGames[0], ...consumer.definition };
 
             // act
             const actualGameConfigs = consumer.getGameConfigs(currencyGroupId);
 
             // assert
-            expect(actualGameConfigs).toEqual(currencyGroupGames[0]);
+            expect(actualGameConfigs).toEqual(expectResult);
         });
     });
 
@@ -161,6 +222,7 @@ describe("InGameConsumer tests", () => {
             const tableData = {
                 name: "player3",
                 roundData,
+                balance: 1000,
             } as TableInGame;
             consumer.gameData.ingame["player3"] = tableData;
 
@@ -168,7 +230,9 @@ describe("InGameConsumer tests", () => {
                 submittedPlayers: [],
                 remainingTime: 50,
                 roundId: 1,
-                hand: playerHand,
+                playerHand,
+                otherPlayers: roundData.otherPlayers,
+                playerBalance: tableData.balance,
             };
 
             // act
@@ -191,7 +255,7 @@ describe("InGameConsumer tests", () => {
                         multiplier: 1,
                         currencyGroupId: "group",
                         playerId: "id1",
-                        operatorId: 1,
+                        operatorId: "1",
                         system: "system",
                         currencyName: "USD",
                     },
@@ -201,21 +265,26 @@ describe("InGameConsumer tests", () => {
                     name: "player3",
                 } as TableInGame;
 
-                // act
-                consumer.initOrUpdateTable(realPlayer);
-                const newTable = consumer.gameData.ingame["player3"];
-                // assert
-                expect(newTable).toEqual({
+                const expectedTable = {
                     canDestroy: false,
+                    canAddBot: true,
                     socketId: "3",
                     playerId: "id1",
                     name: "player3",
                     currency: "USD",
                     system: "system",
                     betQueue: [],
-                    operatorId: 1,
+                    operatorId: "1",
                     botsInTable: [],
-                });
+                    freeBotSlots: BOT_SLOTS,
+                    balance: DEFAULT_BALANCE,
+                };
+
+                // act
+                consumer.initOrUpdateTable(realPlayer);
+                const newTable = consumer.gameData.ingame["player3"];
+                // assert
+                expect(newTable).toEqual(expectedTable);
             });
         });
 
@@ -278,6 +347,7 @@ describe("InGameConsumer tests", () => {
                 expect(currentTable).toEqual({
                     roundData,
                     canDestroy: false,
+                    canAddBot: true,
                     socketId: "newUID",
                     playerId: "id1",
                     name: "player3",
