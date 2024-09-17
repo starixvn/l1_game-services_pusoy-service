@@ -63,6 +63,9 @@ describe("SettleGameRoundConsumer", () => {
         });
     });
 
+    afterEach(() => {
+        jest.clearAllMocks();
+    });
     describe("settleTable", () => {
         it("should process settlements and return total settle effect duration", async () => {
             // Arrange

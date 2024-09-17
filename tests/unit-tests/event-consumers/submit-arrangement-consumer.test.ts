@@ -43,6 +43,10 @@ describe("SubmitArrangementConsumer", () => {
         submitArrangementConsumer = new SubmitArrangementConsumer(roundsRepository, gameData, publisher, definition);
     });
 
+    afterEach(() => {
+        jest.clearAllMocks();
+    });
+
     describe("consume", () => {
         it("should submit the hand if it is a valid submission", async () => {
             // Arrange

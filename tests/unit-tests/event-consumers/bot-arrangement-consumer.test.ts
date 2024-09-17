@@ -1,13 +1,12 @@
 import BotArrangementConsumer from "../../../src/consumers/bot-arrangement-consumer";
 import { RoundOfTable, TableInGame } from "../../../src/game-data";
-import { HandResult, IRound } from "../../../src/models/rounds";
+import { IRound } from "../../../src/models/rounds";
 import { IBot } from "../../../src/models/bots";
 import GameDefinition from "../../../src/game-definition";
 import mongoose from "mongoose";
 import { logger } from "sc-common";
-import Chance from "chance";
 import axios from "axios";
-import { retry, shuffle } from "../../../src/helpers";
+import { retry } from "../../../src/helpers";
 
 jest.mock("axios");
 jest.mock("../../../src/helpers", () => ({
@@ -52,6 +51,10 @@ describe("BotArrangementConsumer", () => {
         } as GameDefinition;
 
         botArrangementConsumer = new BotArrangementConsumer(roundsRepository, logService, definition, botsRepository);
+    });
+
+    afterEach(() => {
+        jest.clearAllMocks();
     });
 
     describe("getDataFromBotApi", () => {
