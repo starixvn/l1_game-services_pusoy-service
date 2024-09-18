@@ -3,8 +3,8 @@ export default {
     name: "Pusoy",
     durations: {
         timeline: {
-            transition: 55,
-            deal: 52,
+            transition: 56,
+            deal: 53,
             arrangement: 50,
             animation: 70,
         },
