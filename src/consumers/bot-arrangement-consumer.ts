@@ -86,12 +86,11 @@ export default class BotArrangementConsumer {
     }
 
     getBotArrangeTime = (remainingTime: number) => {
-        const minArrangeDuration = 3;
-        const differenceMinMax = 3;
+        const minArrangeDuration = 10;
 
         const maxArrangeTime = Math.min(remainingTime, this.definition.durations.timeline.arrangement - minArrangeDuration);
-        const minArrangeTime = Math.max(0, maxArrangeTime - differenceMinMax);
-        const arrangeTime = this.chance.integer({ min: minArrangeTime, max: maxArrangeTime });
+
+        const arrangeTime = this.chance.integer({ min: 0, max: maxArrangeTime });
 
         return arrangeTime;
     };
