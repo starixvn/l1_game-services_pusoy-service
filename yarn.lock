@@ -2036,10 +2036,10 @@
   resolved "http://npm.lumigame.com/@protobufjs/utf8/-/utf8-1.1.0.tgz"
   integrity sha1-p3c2C1s5oaLlEG+OhY8v0tBgxXA=
 
-"@rd/pusoy-rules@^1.2.0":
-  version "1.2.0"
-  resolved "http://npm.lumigame.com/@rd/pusoy-rules/-/pusoy-rules-1.2.0.tgz#1d07344f20257dcaba4bc93142eac36bbe2e1eed"
-  integrity sha512-KYlLysxFxnYcQ4U9UnZ8jEI+KzyMlDXO2o8pZ1rKEtCTVrIUbpyo+OvZ5zUhr8nEzI9sNznq1b9gWZGipdFBjg==
+"@rd/pusoy-rules@^1.2.1":
+  version "1.2.1"
+  resolved "http://npm.lumigame.com/@rd/pusoy-rules/-/pusoy-rules-1.2.1.tgz#df6ba9416d76a1d814c2cd272bbb96a5acab79b3"
+  integrity sha512-LS4oqy3rYLl5lwlnWAJWbAxV0Ac4lP/eQdmhLpL+Ct+nRPRNQSc/4U/i/B6/51cwqV9fZUO0vqcNdPDiMyLLnw==
 
 "@sentry/core@5.30.0":
   version "5.30.0"
