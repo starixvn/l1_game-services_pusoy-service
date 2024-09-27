@@ -98,7 +98,7 @@ describe("GameCron", () => {
             // Assert
             expect(getOrDefault).toHaveBeenCalled();
             expect(gameData.umMessages).toEqual({ message: "Game Disabled" });
-            expect(gameData.remainingTime).toBe(definition.durations.timeline.animation);
+            expect(gameData.remainingTime).toBe(definition.durations.timeline.arrangement);
         });
 
         it("should enable the game if previously disabled", async () => {
@@ -117,7 +117,7 @@ describe("GameCron", () => {
     describe("proceed", () => {
         it("should decrease remaining time and handle game status", async () => {
             // Arrange
-            gameData.remainingTime = 10;
+            gameData.remainingTime = definition.durations.timeline.arrangement;
             gameData.disabled = false;
             jest.spyOn(gameCron, "checkGameStatus").mockImplementation(async () => {});
             jest.spyOn(gameCron, "proceedTableInGame").mockImplementation(async () => {});
@@ -126,7 +126,7 @@ describe("GameCron", () => {
             await gameCron.proceed();
 
             // Assert
-            expect(gameData.remainingTime).toBe(9);
+            expect(gameData.remainingTime).toBe(definition.durations.timeline.arrangement - 1);
             expect(gameCron.checkGameStatus).toHaveBeenCalled();
         });
 
@@ -140,7 +140,7 @@ describe("GameCron", () => {
             await gameCron.proceed();
 
             // Assert
-            expect(gameData.remainingTime).toBe(definition.durations.timeline.animation);
+            expect(gameData.remainingTime).toBe(definition.durations.timeline.arrangement);
             expect(bot.reset).toHaveBeenCalled();
         });
     });
