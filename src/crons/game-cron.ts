@@ -92,6 +92,8 @@ export default class GameCron extends Table.Crons.TableGameCron {
             this.gameData.umMessages = notification;
 
             this.gameData.remainingTime = durations.timeline.animation;
+
+            this.gameStatusPublisher.publishDisableGameStatus();
         } else if (previouslyDisabled) {
             await this.enableGame();
         }
