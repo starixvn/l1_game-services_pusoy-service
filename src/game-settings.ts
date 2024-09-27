@@ -6,7 +6,7 @@ export default {
             transition: 56,
             deal: 53,
             arrangement: 50,
-            animation: 70,
+            animation: 81,
         },
         animation: {
             normal: 6,

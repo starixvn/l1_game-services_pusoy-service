@@ -91,7 +91,7 @@ export default class GameCron extends Table.Crons.TableGameCron {
 
             this.gameData.umMessages = notification;
 
-            this.gameData.remainingTime = durations.timeline.animation;
+            this.gameData.remainingTime = durations.timeline.arrangement;
 
             this.gameStatusPublisher.publishDisableGameStatus();
         } else if (previouslyDisabled) {
@@ -102,7 +102,7 @@ export default class GameCron extends Table.Crons.TableGameCron {
     async proceed() {
         const durations = this.definition.durations;
 
-        if (this.gameData.remainingTime === durations.timeline.animation) {
+        if (this.gameData.remainingTime === durations.timeline.arrangement) {
             await this.checkGameStatus();
         }
 
@@ -113,7 +113,7 @@ export default class GameCron extends Table.Crons.TableGameCron {
         }
 
         if (remainingTime === 0) {
-            this.gameData.remainingTime = durations.timeline.animation;
+            this.gameData.remainingTime = durations.timeline.arrangement;
             this.bot?.reset();
 
             console.log(
@@ -127,8 +127,14 @@ export default class GameCron extends Table.Crons.TableGameCron {
             console.log("number of tables: ", tableNames.length);
             console.log("table names: ", tableNames);
 
-            if (this.bot.botsInGame.length > tableNames.length * MAX_BOTS_ON_TABLE) {
-                this.bot.botsInGame = this.bot.botsInGame.slice(0, tableNames.length * MAX_BOTS_ON_TABLE);
+            const maxNumberOfBots = tableNames.length * MAX_BOTS_ON_TABLE;
+
+            if (this.bot.botsInGame.length > maxNumberOfBots) {
+                const botsToRemove = this.bot.botsInGame.slice(0, this.bot.botsInGame.length - maxNumberOfBots).map((bot) => bot.id);
+
+                this.bot.removeBots(botsToRemove);
+
+                this.bot.botsInGame = this.bot.botsInGame.slice(-maxNumberOfBots);
                 this.logService.logError(`Number of bots in game is more than expected`);
             }
         }
