@@ -21,20 +21,24 @@ export default class GameStatusPublisher extends BaseEventPublishers.GameStatusP
     }
 
     publishEnablingGameStatus() {
-        const { remainingTime, roundId } = this.gameData;
+        const { roundId } = this.gameData;
 
         const realPlayers = Object.values(this.gameData.realPlayers);
 
         realPlayers.forEach((realPlayer) => {
+            const playerName = realPlayer.profile.name;
+            const tableData = this.gameData.ingame[playerName];
+            const remainingTime = tableData?.roundData ? tableData.roundData.remainingTime : this.definition.durations.timeline.transition;
+
             const { session } = realPlayer;
             const configs = this.getGameConfigs(session.currencyGroupId);
 
-            const payload = { gameConfigs: configs };
+            const payload = { gameConfigs: configs, remainingTime: remainingTime };
             realPlayer.socketClient && realPlayer.socketClient.emit(this.gameName, payload);
         });
 
         this.publishToAllAdmins({
-            remainingTime,
+            remainingTime: this.gameData.remainingTime,
             roundId,
             currencies: this.gameData.currencies,
             exchangeRates: this.gameData.exchangeRates,
