@@ -1,9 +1,9 @@
-import { BaseEventPublisher } from "sc-game-base/src/core/event-publishers";
+import { BaseEventPublishers } from "sc-game-base/src/core";
 import GameData from "../game-data";
 import GameDefinition from "../game-definition";
 import scoreConfig from "../score-config";
 
-export default class GameStatusPublisher extends BaseEventPublisher {
+export default class GameStatusPublisher extends BaseEventPublishers.GameStatusPublisher {
     declare gameData: GameData;
     definition: GameDefinition;
 
