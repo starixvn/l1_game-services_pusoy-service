@@ -14,7 +14,7 @@ import { betLogs, bets, rounds, tmpBets, bots, survey } from "./models";
 import Bot from "./crons/bot";
 import SocketRouter from "./router/socket-router";
 import BotArrangementConsumer from "./consumers/bot-arrangement-consumer";
-import { RoundResultPublisher } from "./publishers";
+import { GameStatusPublisher, RoundResultPublisher } from "./publishers";
 
 export default class ContainerRegistry extends Table.TableContainerRegistry {
     register(appConfigs: any, definition: any, gameData: any): AwilixContainer<any> {
@@ -65,6 +65,7 @@ export default class ContainerRegistry extends Table.TableContainerRegistry {
 
         this.container.register({
             roundResultPublisher: asClass(RoundResultPublisher).singleton(),
+            gameStatusPublisher: asClass(GameStatusPublisher).singleton(),
         });
     }
 
