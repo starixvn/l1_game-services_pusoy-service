@@ -137,6 +137,10 @@ export default class GameCron extends Table.Crons.TableGameCron {
                 this.bot.botsInGame = this.bot.botsInGame.slice(-maxNumberOfBots);
                 this.logService.logError(`Number of bots in game is more than expected`);
             }
+
+            if (tableNames.length === 0) {
+                this.bot.resetInRoomTrackings();
+            }
         }
 
         await Promise.all(

@@ -149,4 +149,8 @@ export default class Bot extends BaseBot {
             otherPlayers: tableInGame.botsInTable,
         });
     }
+
+    async resetInRoomTrackings() {
+        await post(this.gameManagementApiClient.users.resetBotsInRoom({ gameName: this.definition.configName }));
+    }
 }
