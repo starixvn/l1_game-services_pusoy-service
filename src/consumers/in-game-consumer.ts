@@ -1,19 +1,24 @@
 import { TableInGameConsumer } from "sc-game-base/src/table/event-consumers";
-import GameData, { BotInRound, RealPlayer, TableInGame } from "../game-data";
+import GameData, { BotInRound, RealPlayer, RoundOfTable, TableInGame } from "../game-data";
 import GameDefinition from "../game-definition";
 import scoreConfig from "../score-config";
 import GameManagementApiClientFactory from "sc-game-base/src/core/game-management-api";
-import { Core } from "sc-game-base";
+import { Core, Table } from "sc-game-base";
 import { RoundQuery } from "sc-game-base/src/core/query-apis";
 import { ISurvey } from "../models/survey";
 import mongoose from "mongoose";
 import Chance from "chance";
+import * as Helper from "../helpers";
 
 import { BOT_SLOTS, DEFAULT_BALANCE } from "../constants";
+import BotArrangementConsumer from "./bot-arrangement-consumer";
+import Bot from "../crons/bot";
 export default class InGameConsumer extends TableInGameConsumer {
     declare gameData: GameData;
     declare definition: GameDefinition;
     surveyRepository: mongoose.Model<ISurvey>;
+    botArrangementConsumer: BotArrangementConsumer;
+    bot: Bot;
 
     constructor(
         definition: GameDefinition,
@@ -22,10 +27,14 @@ export default class InGameConsumer extends TableInGameConsumer {
         publisher: Core.BaseEventPublishers.BaseEventPublisher,
         getBalance: any,
         gameManagementApiClientFactory: GameManagementApiClientFactory,
-        surveyRepository: mongoose.Model<ISurvey>
+        surveyRepository: mongoose.Model<ISurvey>,
+        botArrangementConsumer: BotArrangementConsumer,
+        bot: Bot
     ) {
         super(definition, gameData, roundQuery, publisher, getBalance, gameManagementApiClientFactory);
         this.surveyRepository = surveyRepository;
+        this.botArrangementConsumer = botArrangementConsumer;
+        this.bot = bot;
     }
 
     async consume(realPlayer: RealPlayer) {
@@ -126,7 +135,71 @@ export default class InGameConsumer extends TableInGameConsumer {
             tableData.canDestroy = false;
             tableData.canAddBot = true;
         } else {
+            chance.integer({ min: 0, max: 1 }) === 1 && this.fakeUnfinishedRound(newTable);
             this.gameData.ingame[realPlayer.profile.name] = newTable;
         }
+    }
+
+    async fakeUnfinishedRound(tableInGame: TableInGame) {
+        await this.fakeBotInTable(tableInGame);
+
+        const chance = new Chance();
+
+        const maxFakeRemainingTime = this.definition.durations.timeline.arrangement - 2;
+        const minFakeRemainingTime = 4;
+
+        const newRound: RoundOfTable = {
+            roundId: this.gameData.roundId,
+            remainingTime: chance.integer({ min: minFakeRemainingTime, max: maxFakeRemainingTime }),
+            showingResultTime: 0,
+            result: {},
+            otherPlayers: [...tableInGame.botsInTable],
+            submittedPlayers: [],
+            realPlayerSubmitted: false,
+            isSettled: false,
+            observer: true,
+        };
+
+        this.gameData.roundId++;
+
+        const hands = Helper.dealHands(tableInGame.botsInTable.length);
+
+        newRound.otherPlayers.forEach((bot, index) => {
+            const botHand = {
+                hand: hands[index],
+                playerId: bot.id,
+                slot: bot.slot,
+                time: new Date(),
+            };
+
+            newRound.result[bot.id] = botHand;
+        });
+
+        this.botArrangementConsumer.handleBotArrangements(tableInGame);
+
+        tableInGame.roundData = newRound;
+    }
+
+    async fakeBotInTable(tableInGame: TableInGame) {
+        const chance = new Chance();
+        const numberOfBots = chance.pickone([2, 3]);
+        const bots = await this.bot.getBotsToJoin(numberOfBots);
+
+        bots.forEach((bot) => {
+            const slot = chance.pickone(tableInGame.freeBotSlots);
+            tableInGame.freeBotSlots = tableInGame.freeBotSlots.filter((s) => s !== slot);
+
+            const newBot = {
+                id: bot.id,
+                name: bot.name,
+                red: bot.red,
+                avatarId: bot.avatarId,
+                slot: slot,
+                balance: chance.integer({ min: DEFAULT_BALANCE - 100, max: DEFAULT_BALANCE + 100 }),
+            };
+
+            tableInGame.botsInTable.push(newBot);
+            this.bot.botsInGame.push(newBot);
+        });
     }
 }

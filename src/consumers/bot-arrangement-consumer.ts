@@ -119,6 +119,10 @@ export default class BotArrangementConsumer {
     async updateBotHandResultToDatabase(tableData: TableInGame, playerId: string) {
         const roundData = tableData.roundData as RoundOfTable;
 
+        if (roundData.observer) {
+            return;
+        }
+
         const filter = { id: roundData.roundId };
 
         const update = {
@@ -129,6 +133,10 @@ export default class BotArrangementConsumer {
     }
 
     async updateBotToDatabase(tableData: TableInGame, botData: BotArrangement) {
+        if (!tableData || !tableData.roundData || tableData.roundData.observer) {
+            return;
+        }
+
         const bot = {
             botId: botData.playerId,
             roundId: tableData?.roundData?.roundId ?? -1,

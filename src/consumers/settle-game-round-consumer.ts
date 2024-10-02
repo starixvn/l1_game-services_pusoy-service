@@ -128,7 +128,9 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
 
         const totalSettleEffectDuration = Object.values(settleEffectDuration).reduce((a, b) => a + b, 0);
 
-        await this.roundsRepository.updateOne({ id: round.roundId }, { settlementResult: settlementResult }).exec();
+        if (!round.observer) {
+            await this.roundsRepository.updateOne({ id: round.roundId }, { settlementResult: settlementResult }).exec();
+        }
 
         const publishInfo: RoundResultPublishInfo = {
             socketId: tableData.socketId,
@@ -145,6 +147,10 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
 
     async updateBotScore(tableData: TableInGame, settlementResult: Settlement) {
         const roundData = tableData.roundData as RoundOfTable;
+
+        if (roundData.observer) {
+            return;
+        }
 
         const filter = { roundId: roundData.roundId, botId: settlementResult.playerId };
 
