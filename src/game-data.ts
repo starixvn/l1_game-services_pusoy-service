@@ -27,6 +27,7 @@ export type TableInGame = {
     botsInTable: BotInRound[];
     freeBotSlots: number[];
     balance: number;
+    searchingPlayersTime: number;
 };
 
 export type InGameData = {

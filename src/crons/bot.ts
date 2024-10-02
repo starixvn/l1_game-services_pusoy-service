@@ -36,7 +36,11 @@ export default class Bot extends BaseBot {
     }
 
     async handleBotsInTable(tableInGame: TableInGame) {
-        if (tableInGame.botsInTable.length < MAX_BOTS_ON_TABLE && tableInGame.canAddBot) {
+        if (tableInGame.searchingPlayersTime > 0) {
+            tableInGame.searchingPlayersTime--;
+        }
+
+        if (tableInGame.botsInTable.length < MAX_BOTS_ON_TABLE && tableInGame.canAddBot && !this.gameData.disabled) {
             this.addBotsToTableAndPublish(tableInGame);
         }
     }
@@ -66,8 +70,6 @@ export default class Bot extends BaseBot {
     async updateBotList() {}
 
     async addBotsToTableAndPublish(tableInGame: TableInGame) {
-        const tmp = [...tableInGame.freeBotSlots];
-
         const numberOfBots = Math.min(
             this.chance.weighted(this.definition.botSettings.joinConfigs.numberOfBots, this.definition.botSettings.joinConfigs.rate),
             tableInGame.freeBotSlots.length,
@@ -84,9 +86,12 @@ export default class Bot extends BaseBot {
             return;
         }
 
+        if (tableInGame.searchingPlayersTime > 0) {
+            return;
+        }
+
         bots.forEach((bot) => {
             if (tableInGame.freeBotSlots.length === 0) {
-                console.log(`free bot slots:  ${JSON.stringify(tmp)}`);
                 this.logService.logError("No free bot slots available");
                 return;
             }

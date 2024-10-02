@@ -31,4 +31,8 @@ export default {
             rate: [0.7, 0.25, 0.04, 0.01],
         },
     },
+    searchingPlayersTime: {
+        min: 3,
+        max: 10,
+    },
 };

@@ -7,6 +7,7 @@ import { Core } from "sc-game-base";
 import { RoundQuery } from "sc-game-base/src/core/query-apis";
 import { ISurvey } from "../models/survey";
 import mongoose from "mongoose";
+import Chance from "chance";
 
 import { BOT_SLOTS, DEFAULT_BALANCE } from "../constants";
 export default class InGameConsumer extends TableInGameConsumer {
@@ -98,6 +99,7 @@ export default class InGameConsumer extends TableInGameConsumer {
     }
 
     initOrUpdateTable(realPlayer: RealPlayer) {
+        const chance = new Chance();
         const tableData = this.gameData.ingame[realPlayer.profile.name];
         const newTable = {
             canDestroy: false,
@@ -112,6 +114,10 @@ export default class InGameConsumer extends TableInGameConsumer {
             botsInTable: [] as BotInRound[],
             freeBotSlots: BOT_SLOTS,
             balance: DEFAULT_BALANCE,
+            searchingPlayersTime: chance.integer({
+                min: this.definition.searchingPlayersTime.min,
+                max: this.definition.searchingPlayersTime.max,
+            }),
         } as TableInGame;
 
         if (tableData?.roundData && tableData.roundData.remainingTime > 0) {

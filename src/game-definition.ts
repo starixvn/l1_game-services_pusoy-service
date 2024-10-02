@@ -2,12 +2,17 @@ import { GameDefinition as BaseGameDefinition } from "sc-game-base/src/core";
 import { Duration as BaseDuration } from "sc-game-base/src/core/game-definition";
 export default class GameDefinition extends BaseGameDefinition {
     declare durations: Duration;
-    suitesMapper: any;
+    searchingPlayersTime: {
+        min: number;
+        max: number;
+    };
+    suitesMapper: { [key: string]: number };
     botSettings: BotSettings;
     constructor(gameSettings: GameSettings, generateResult: Function, settle: Function, generateRawResultForHash: Function) {
         super(gameSettings, generateResult, settle, generateRawResultForHash);
         this.suitesMapper = gameSettings.suitesMapper;
         this.botSettings = gameSettings.botSettings;
+        this.searchingPlayersTime = gameSettings.searchingPlayersTime;
     }
 }
 
@@ -28,6 +33,10 @@ export type GameSettings = {
     provablyFair?: boolean;
     suitesMapper: { [key: string]: number };
     botSettings: BotSettings;
+    searchingPlayersTime: {
+        min: number;
+        max: number;
+    };
 };
 
 export type Duration = BaseDuration & {
