@@ -142,6 +142,7 @@ export default class InGameConsumer extends TableInGameConsumer {
 
     async fakeUnfinishedRound(tableInGame: TableInGame) {
         await this.fakeBotInTable(tableInGame);
+        tableInGame.searchingPlayersTime = 0;
 
         const chance = new Chance();
 
@@ -175,9 +176,9 @@ export default class InGameConsumer extends TableInGameConsumer {
             newRound.result[bot.id] = botHand;
         });
 
-        this.botArrangementConsumer.handleBotArrangements(tableInGame);
-
         tableInGame.roundData = newRound;
+
+        this.botArrangementConsumer.handleBotArrangements(tableInGame);
     }
 
     async fakeBotInTable(tableInGame: TableInGame) {

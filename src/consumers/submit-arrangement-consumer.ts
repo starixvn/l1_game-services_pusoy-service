@@ -41,6 +41,11 @@ export default class SubmitArrangementConsumer {
     async consume(data: SubmitPayload) {
         const tableData = this.gameData.ingame[data.playerName];
         const currentRound = tableData.roundData as RoundOfTable;
+
+        if (currentRound.observer) {
+            return;
+        }
+
         const isValidSubmit = this.isValidSubmit(data);
 
         if (isValidSubmit) {
@@ -70,6 +75,11 @@ export default class SubmitArrangementConsumer {
     consumeRearrangeCards(data: { playerId: string; playerName: string }) {
         const tableData = this.gameData.ingame[data.playerName];
         const currentRound = tableData.roundData as RoundOfTable;
+
+        if (currentRound.observer) {
+            return;
+        }
+
         let canRearrange = false;
 
         if (currentRound.remainingTime <= this.definition.durations.timeline.arrangement && currentRound.remainingTime > 0) {
@@ -88,16 +98,24 @@ export default class SubmitArrangementConsumer {
     }
 
     isValidSubmit(data: SubmitPayload) {
-        const tableData = this.gameData.ingame[data.playerName];
-        const currentRound = tableData.roundData as RoundOfTable;
+        if (!data || !data.playerName || !data.playerId || !data.hand || !data.roundId) {
+            return false;
+        }
 
-        return (
-            data.roundId === currentRound.roundId &&
-            data.playerId === tableData.playerId &&
-            currentRound &&
-            !currentRound.realPlayerSubmitted &&
-            isSameCards(currentRound.result[data.playerId].hand, data.hand)
-        );
+        const tableData = this.gameData.ingame[data.playerName];
+        const currentRound = tableData?.roundData as RoundOfTable;
+
+        if (
+            !tableData ||
+            !currentRound ||
+            data.roundId !== currentRound.roundId ||
+            data.playerId !== tableData.playerId ||
+            currentRound.realPlayerSubmitted
+        ) {
+            return false;
+        }
+
+        return isSameCards(currentRound.result[data.playerId].hand, data.hand);
     }
 
     async updatePlayerHandResultToDatabase(tableData: TableInGame, playerId: string) {
