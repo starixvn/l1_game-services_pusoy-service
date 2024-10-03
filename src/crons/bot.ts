@@ -86,7 +86,7 @@ export default class Bot extends BaseBot {
             return;
         }
 
-        if (tableInGame.searchingPlayersTime > 0) {
+        if (this.gameData.ingame[tableInGame.name].searchingPlayersTime > 0) {
             return;
         }
 

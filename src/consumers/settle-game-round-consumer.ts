@@ -140,6 +140,10 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
             result: round.result,
         };
 
+        if (round.observer && !this.gameData.ingame[tableData.name]?.roundData?.observer) {
+            return totalSettleEffectDuration;
+        }
+
         this.roundResultPublisher.publishRoundResult(publishInfo);
 
         return totalSettleEffectDuration;

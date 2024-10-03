@@ -159,6 +159,10 @@ export default class GameCron extends Table.Crons.TableGameCron {
 
         const currentRound = tableInGame.roundData;
 
+        if (currentRound.observer && !this.gameData.ingame[tableInGame.name]?.roundData?.observer) {
+            return;
+        }
+
         if (tableInGame.canDestroy && currentRound.isSettled) {
             console.log("destroying table: ", tableInGame.name);
             await this.bot.removeAllBotsFromTable(tableInGame);
