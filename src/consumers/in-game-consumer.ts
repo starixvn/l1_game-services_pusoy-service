@@ -44,7 +44,7 @@ export default class InGameConsumer extends TableInGameConsumer {
         if (disabled) {
             realPlayer.socketClient.emit(this.definition.name, { um: disabled, um_message: this.gameData.umMessages });
         } else {
-            this.initOrUpdateTable(realPlayer);
+            await this.initOrUpdateTable(realPlayer);
         }
 
         const payload = await this.buildPayload(realPlayer);
@@ -66,10 +66,11 @@ export default class InGameConsumer extends TableInGameConsumer {
         return {
             remainingTime: tableData.roundData ? roundData.remainingTime : this.definition.durations.timeline.transition,
             gameConfigs: configs,
-            pusoyRound: roundData.playerHand ? roundData : { playerBalance: tableData.balance },
+            pusoyRound: tableData.roundData ? roundData : { playerBalance: tableData.balance },
             otherPlayers: tableData.botsInTable || [],
             user: { ...user, rate },
             surveyUpdated: surveyStatus,
+            observer: tableData.roundData?.observer ?? false,
         };
     }
 
@@ -102,12 +103,12 @@ export default class InGameConsumer extends TableInGameConsumer {
             submittedPlayers: currentRound?.submittedPlayers,
             remainingTime: currentRound ? remainingTime : invalidRemainingTime,
             roundId: currentRound?.roundId,
-            playerHand: currentRound?.result[realPlayer.session.playerId],
             playerBalance: tableData.balance,
+            observer: currentRound?.observer ?? false,
         };
     }
 
-    initOrUpdateTable(realPlayer: RealPlayer) {
+    async initOrUpdateTable(realPlayer: RealPlayer) {
         const chance = new Chance();
         const tableData = this.gameData.ingame[realPlayer.profile.name];
         const newTable = {
@@ -135,7 +136,7 @@ export default class InGameConsumer extends TableInGameConsumer {
             tableData.canDestroy = false;
             tableData.canAddBot = true;
         } else {
-            chance.integer({ min: 0, max: 1 }) === 1 && this.fakeUnfinishedRound(newTable);
+            chance.integer({ min: 0, max: 1 }) === 1 && (await this.fakeUnfinishedRound(newTable));
             this.gameData.ingame[realPlayer.profile.name] = newTable;
         }
     }
