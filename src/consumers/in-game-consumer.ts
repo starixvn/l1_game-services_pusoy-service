@@ -143,6 +143,11 @@ export default class InGameConsumer extends TableInGameConsumer {
 
     async fakeUnfinishedRound(tableInGame: TableInGame) {
         await this.fakeBotInTable(tableInGame);
+
+        if (tableInGame.botsInTable.length === 0) {
+            return;
+        }
+
         tableInGame.searchingPlayersTime = 0;
 
         const chance = new Chance();
