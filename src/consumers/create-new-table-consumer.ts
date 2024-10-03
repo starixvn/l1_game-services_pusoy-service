@@ -23,7 +23,6 @@ export default class CreateNewTableConsumer {
 
     async consume(realPlayer: RealPlayer) {
         if (this.gameData.ingame[realPlayer.profile.name]?.roundData?.observer) {
-            const extraTime = 1;
             const newTable = this.inGameConsumer.createNewTable(realPlayer);
 
             delete this.gameData.ingame[realPlayer.profile.name];
@@ -31,8 +30,6 @@ export default class CreateNewTableConsumer {
             this.gameData.ingame[realPlayer.profile.name] = newTable;
 
             const payload = await this.inGameConsumer.buildPayload(realPlayer);
-
-            payload.remainingTime = this.definition.durations.timeline.transition + extraTime;
 
             this.publisher.publishToUser(realPlayer.UID, payload);
         }
