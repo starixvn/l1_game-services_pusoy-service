@@ -136,7 +136,7 @@ export default class InGameConsumer extends TableInGameConsumer {
             tableData.canDestroy = false;
             tableData.canAddBot = true;
         } else {
-            chance.integer({ min: 0, max: 1 }) === 1 && (await this.fakeUnfinishedRound(newTable));
+            chance.bool() === true && (await this.fakeUnfinishedRound(newTable));
             this.gameData.ingame[realPlayer.profile.name] = newTable;
         }
     }

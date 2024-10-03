@@ -1,4 +1,4 @@
-import { RoundOfTable, TableInGame } from "../game-data";
+import { BotInRound, RoundOfTable, TableInGame } from "../game-data";
 import { retry, shuffle } from "../helpers";
 import appConfigs from "../app-configs";
 import { Hand } from "@rd/pusoy-rules";
@@ -72,6 +72,7 @@ export default class BotArrangementConsumer {
 
         try {
             const botApiResult = await retry(() => this.getDataFromBotApi(cards), retries, delay);
+
             const arrangeTime = this.getBotArrangeTime(roundData.remainingTime);
 
             return {
@@ -106,7 +107,12 @@ export default class BotArrangementConsumer {
             if (botArrangement.hand && roundData.remainingTime > 0) {
                 roundData.result[botArrangement.playerId].hand = botArrangement.hand;
                 roundData.result[botArrangement.playerId].time = new Date();
-                roundData.otherPlayers.filter((bot) => bot.id === botArrangement.playerId)[0].arrangeTime = botArrangement.arrangeTime;
+
+                const currentBot = roundData.otherPlayers.filter((bot) => bot.id === botArrangement.playerId)[0];
+
+                currentBot.arrangeTime = botArrangement.arrangeTime;
+
+                roundData.observer && roundData.submittedPlayers.length === 0 && this.observeBotArrangement(roundData, currentBot);
 
                 await this.updateBotHandResultToDatabase(tableData, botArrangement.playerId);
                 await this.updateBotToDatabase(tableData, botArrangement);
@@ -114,6 +120,22 @@ export default class BotArrangementConsumer {
         });
 
         await Promise.allSettled(updatePromises);
+    }
+
+    observeBotArrangement(roundData: RoundOfTable, currentBot: BotInRound) {
+        if (!roundData.observer) {
+            return;
+        }
+
+        const fakeSubmitted =
+            roundData.remainingTime < this.definition.durations.timeline.arrangement / 3
+                ? this.chance.bool({ likelihood: 80 })
+                : this.chance.bool({ likelihood: 20 });
+
+        if (fakeSubmitted) {
+            currentBot.arrangeTime = this.definition.durations.timeline.arrangement;
+            roundData.submittedPlayers.push(currentBot);
+        }
     }
 
     async updateBotHandResultToDatabase(tableData: TableInGame, playerId: string) {

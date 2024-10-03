@@ -166,7 +166,7 @@ export default class GameCron extends Table.Crons.TableGameCron {
             return;
         }
 
-        const numberOfPlayers = currentRound.otherPlayers.length + 1;
+        const numberOfPlayers = currentRound.observer ? currentRound.otherPlayers.length : currentRound.otherPlayers.length + 1;
 
         const remainingTime = currentRound.remainingTime;
         currentRound.remainingTime--;
