@@ -111,6 +111,22 @@ export default class InGameConsumer extends TableInGameConsumer {
     async initOrUpdateTable(realPlayer: RealPlayer) {
         const chance = new Chance();
         const tableData = this.gameData.ingame[realPlayer.profile.name];
+
+        if (tableData?.roundData && tableData.roundData.remainingTime > 0) {
+            tableData.socketId = realPlayer.UID;
+            tableData.playerId = realPlayer.session.playerId;
+            tableData.canDestroy = false;
+            tableData.canAddBot = true;
+        } else {
+            const newTable = this.createNewTable(realPlayer);
+            chance.bool() === true && (await this.fakeUnfinishedRound(newTable));
+            this.gameData.ingame[realPlayer.profile.name] = newTable;
+        }
+    }
+
+    createNewTable(realPlayer: RealPlayer) {
+        const chance = new Chance();
+
         const newTable = {
             canDestroy: false,
             canAddBot: true,
@@ -130,21 +146,13 @@ export default class InGameConsumer extends TableInGameConsumer {
             }),
         } as TableInGame;
 
-        if (tableData?.roundData && tableData.roundData.remainingTime > 0) {
-            tableData.socketId = realPlayer.UID;
-            tableData.playerId = realPlayer.session.playerId;
-            tableData.canDestroy = false;
-            tableData.canAddBot = true;
-        } else {
-            chance.bool() === true && (await this.fakeUnfinishedRound(newTable));
-            this.gameData.ingame[realPlayer.profile.name] = newTable;
-        }
+        return newTable;
     }
 
     async fakeUnfinishedRound(tableInGame: TableInGame) {
         await this.fakeBotInTable(tableInGame);
 
-        if (tableInGame.botsInTable.length === 0) {
+        if (tableInGame.botsInTable.length < 2) {
             return;
         }
 

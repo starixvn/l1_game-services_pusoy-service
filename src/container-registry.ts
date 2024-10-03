@@ -3,6 +3,7 @@ import { Table } from "sc-game-base";
 import GameCron from "./crons/game-cron";
 import ProcessBetQueue from "./crons/process-bet-queue";
 import {
+    CreateNewTableConsumer,
     InGameConsumer,
     PlaceBetConsumer,
     SettleGameRoundConsumer,
@@ -57,6 +58,7 @@ export default class ContainerRegistry extends Table.TableContainerRegistry {
             submitArrangementConsumer: asClass(SubmitArrangementConsumer).singleton(),
             botArrangementConsumer: asClass(BotArrangementConsumer).singleton(),
             surveyConsumer: asClass(SurveyConsumer).singleton(),
+            createNewTableConsumer: asClass(CreateNewTableConsumer).singleton(),
         });
     }
 

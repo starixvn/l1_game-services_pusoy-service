@@ -8,7 +8,7 @@ import { UserSignInPublisher } from "sc-game-base/src/core/event-publishers";
 import { logger } from "sc-common";
 import { PlayGamePermissionValidator } from "sc-game-base/src/core/validators";
 import { HistoryQuery, RoundQuery } from "sc-game-base/src/core/query-apis";
-import { SubmitArrangementConsumer, SurveyConsumer } from "../consumers";
+import { CreateNewTableConsumer, SubmitArrangementConsumer, SurveyConsumer } from "../consumers";
 import { RearrangePayload, SubmitPayload } from "../consumers/submit-arrangement-consumer";
 import { SurveyPayload } from "../consumers/survey-consumer";
 
@@ -18,6 +18,7 @@ export default class SocketRouter extends BaseSocketRouter {
 
     submitArrangementConsumer: SubmitArrangementConsumer;
     surveyConsumer: SurveyConsumer;
+    createNewTableConsumer: CreateNewTableConsumer;
 
     constructor({
         definition,
@@ -33,6 +34,7 @@ export default class SocketRouter extends BaseSocketRouter {
         roundQuery,
         submitArrangementConsumer,
         surveyConsumer,
+        createNewTableConsumer,
     }: {
         definition: GameDefinition;
         gameData: GameData;
@@ -47,6 +49,7 @@ export default class SocketRouter extends BaseSocketRouter {
         roundQuery: RoundQuery;
         submitArrangementConsumer: SubmitArrangementConsumer;
         surveyConsumer: SurveyConsumer;
+        createNewTableConsumer: CreateNewTableConsumer;
     }) {
         super({
             definition,
@@ -64,6 +67,7 @@ export default class SocketRouter extends BaseSocketRouter {
 
         this.submitArrangementConsumer = submitArrangementConsumer;
         this.surveyConsumer = surveyConsumer;
+        this.createNewTableConsumer = createNewTableConsumer;
     }
 
     init(socketClient: Socket<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap, any>): void {
@@ -71,6 +75,7 @@ export default class SocketRouter extends BaseSocketRouter {
         this.socketClient.on("submitArrangement", this.handleSubmitArrangement.bind(this));
         this.socketClient.on("rearrange", this.handleSubmitRearrange.bind(this));
         this.socketClient.on("survey", this.handleUpdateSurvey.bind(this));
+        this.socketClient.on("createNewTable", this.handleCreateNewTable.bind(this));
     }
 
     handleSubmitArrangement(payload: SubmitPayload) {
@@ -104,6 +109,18 @@ export default class SocketRouter extends BaseSocketRouter {
             }
 
             this.surveyConsumer.consume(this.socketClient, payload);
+        } catch (error) {
+            this.logService.logError(error);
+        }
+    }
+
+    async handleCreateNewTable() {
+        try {
+            if (!this.verify()) {
+                return;
+            }
+
+            await this.createNewTableConsumer.consume(this.gameData.realPlayers[this.socketClient.id]);
         } catch (error) {
             this.logService.logError(error);
         }
