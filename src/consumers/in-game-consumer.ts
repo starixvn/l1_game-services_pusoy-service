@@ -120,7 +120,7 @@ export default class InGameConsumer extends TableInGameConsumer {
             tableData.canAddBot = true;
         } else {
             const newTable = this.createNewTable(realPlayer);
-            chance.bool() === true && (await this.fakeUnfinishedRound(newTable));
+            chance.bool({ likelihood: 80 }) === true && (await this.fakeUnfinishedRound(newTable));
             this.gameData.ingame[realPlayer.profile.name] = newTable;
         }
     }
