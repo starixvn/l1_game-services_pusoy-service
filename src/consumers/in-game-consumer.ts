@@ -103,6 +103,7 @@ export default class InGameConsumer extends TableInGameConsumer {
             submittedPlayers: currentRound?.submittedPlayers,
             remainingTime: currentRound ? remainingTime : invalidRemainingTime,
             roundId: currentRound?.roundId,
+            playerHand: currentRound?.result[realPlayer.session.playerId],
             playerBalance: tableData.balance,
             observer: currentRound?.observer ?? false,
         };
