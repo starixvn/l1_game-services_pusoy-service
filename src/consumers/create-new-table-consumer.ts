@@ -23,6 +23,8 @@ export default class CreateNewTableConsumer {
 
     async consume(realPlayer: RealPlayer) {
         if (this.gameData.ingame[realPlayer.profile.name]?.roundData?.observer) {
+            this.publisher.publishToUser(realPlayer.UID, { otherPlayers: [] });
+
             const newTable = this.inGameConsumer.createNewTable(realPlayer);
 
             delete this.gameData.ingame[realPlayer.profile.name];

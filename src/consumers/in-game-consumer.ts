@@ -64,8 +64,8 @@ export default class InGameConsumer extends TableInGameConsumer {
         const surveyStatus = await this.getSurveyStatus(realPlayer.session.playerId);
 
         return {
-            otherPlayers: tableData.botsInTable || [],
             remainingTime: tableData.roundData ? roundData.remainingTime : this.definition.durations.timeline.transition,
+            otherPlayers: tableData.botsInTable || [],
             gameConfigs: configs,
             pusoyRound: tableData.roundData ? roundData : { playerBalance: tableData.balance },
             user: { ...user, rate },
