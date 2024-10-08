@@ -1,5 +1,5 @@
 import { stub } from "jest-auto-stub";
-import { InGameConsumer } from "../../../src/consumers";
+import { InGameConsumer, BotArrangementConsumer } from "../../../src/consumers";
 import GameDefinition from "../../../src/game-definition";
 import GameData, { RealPlayer, RoundOfTable, TableInGame } from "../../../src/game-data";
 import { Core } from "sc-game-base";
@@ -8,6 +8,15 @@ import mongoose from "mongoose";
 import { ISurvey } from "../../../src/models/survey";
 import scoreConfig from "../../../src/score-config";
 import { BOT_SLOTS, DEFAULT_BALANCE } from "../../../src/constants";
+import Bot from "../../../src/crons/bot";
+import Chance from "chance";
+
+jest.mock("chance", () => {
+    return jest.fn().mockImplementation(() => ({
+        integer: jest.fn(),
+        bool: jest.fn(),
+    }));
+});
 
 describe("InGameConsumer tests", () => {
     const definition = stub<GameDefinition>();
@@ -17,8 +26,10 @@ describe("InGameConsumer tests", () => {
     const getBalance = jest.fn();
     const gameManagementApiClientFactory = stub<GameManagementApiClientFactory>();
     const surveyRepository = stub<mongoose.Model<ISurvey>>();
-
+    const botArrangementConsumer = stub<BotArrangementConsumer>();
+    const bot = stub<Bot>();
     let consumer: InGameConsumer;
+    let chanceInstance: Chance.Chance;
 
     beforeEach(() => {
         consumer = new InGameConsumer(
@@ -28,8 +39,15 @@ describe("InGameConsumer tests", () => {
             publisher,
             getBalance,
             gameManagementApiClientFactory,
-            surveyRepository
+            surveyRepository,
+            botArrangementConsumer,
+            bot
         );
+
+        chanceInstance = new Chance();
+        (chanceInstance.bool as jest.Mock).mockReturnValue(false);
+        (chanceInstance.integer as jest.Mock).mockReturnValue(0);
+        consumer.chance = chanceInstance;
     });
 
     afterEach(() => {
@@ -71,6 +89,7 @@ describe("InGameConsumer tests", () => {
                     back: [],
                 },
                 remainingTime: 10,
+                observer: false,
             };
 
             const tableData = {
@@ -94,6 +113,7 @@ describe("InGameConsumer tests", () => {
                 otherPlayers: tableData.botsInTable,
                 user: { ...user, rate: 1 },
                 surveyUpdated: false,
+                observer: false,
             };
 
             // act
@@ -217,6 +237,7 @@ describe("InGameConsumer tests", () => {
                 submittedPlayers: [],
                 realPlayerSubmitted: false,
                 isSettled: false,
+                observer: false,
             } as RoundOfTable;
 
             const tableData = {
@@ -233,6 +254,7 @@ describe("InGameConsumer tests", () => {
                 playerHand,
                 otherPlayers: roundData.otherPlayers,
                 playerBalance: tableData.balance,
+                observer: false,
             };
 
             // act
@@ -245,8 +267,13 @@ describe("InGameConsumer tests", () => {
 
     describe("initOrUpdateTable", () => {
         describe("when table is not exist", () => {
-            it("should initialize new table", async () => {
+            it("should initialize new table when chance.bool = false", async () => {
                 // arrange
+                (chanceInstance.bool as jest.Mock).mockReturnValueOnce(false);
+                (chanceInstance.integer as jest.Mock).mockReturnValueOnce(10);
+
+                consumer.fakeUnfinishedRound = jest.fn();
+
                 const realPlayer = {
                     UID: "3",
                     profile: { name: "player3" },
@@ -278,13 +305,64 @@ describe("InGameConsumer tests", () => {
                     botsInTable: [],
                     freeBotSlots: BOT_SLOTS,
                     balance: DEFAULT_BALANCE,
+                    searchingPlayersTime: 10,
                 };
 
                 // act
-                consumer.initOrUpdateTable(realPlayer);
+                await consumer.initOrUpdateTable(realPlayer);
                 const newTable = consumer.gameData.ingame["player3"];
                 // assert
                 expect(newTable).toEqual(expectedTable);
+                expect(consumer.fakeUnfinishedRound).not.toHaveBeenCalled();
+            });
+
+            it("should initialize and fake new table when chance.bool = true", async () => {
+                // arrange
+                (chanceInstance.bool as jest.Mock).mockReturnValueOnce(true);
+                (chanceInstance.integer as jest.Mock).mockReturnValueOnce(10);
+
+                consumer.fakeUnfinishedRound = jest.fn();
+
+                const realPlayer = {
+                    UID: "3",
+                    profile: { name: "player3" },
+                    session: {
+                        currencyCode: "USD",
+                        multiplier: 1,
+                        currencyGroupId: "group",
+                        playerId: "id1",
+                        operatorId: "1",
+                        system: "system",
+                        currencyName: "USD",
+                    },
+                } as RealPlayer;
+
+                consumer.gameData.ingame["player3"] = {
+                    name: "player3",
+                } as TableInGame;
+
+                const expectedTable = {
+                    canDestroy: false,
+                    canAddBot: true,
+                    socketId: "3",
+                    playerId: "id1",
+                    name: "player3",
+                    currency: "USD",
+                    system: "system",
+                    betQueue: [],
+                    operatorId: "1",
+                    botsInTable: [],
+                    freeBotSlots: BOT_SLOTS,
+                    balance: DEFAULT_BALANCE,
+                    searchingPlayersTime: 10,
+                };
+
+                // act
+                await consumer.initOrUpdateTable(realPlayer);
+                const newTable = consumer.gameData.ingame["player3"];
+                // assert
+                expect(newTable).toEqual(expectedTable);
+                expect(consumer.fakeUnfinishedRound).toHaveBeenCalledWith(newTable);
             });
         });
 

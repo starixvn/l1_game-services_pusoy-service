@@ -8,7 +8,7 @@ import { UserSignInPublisher } from "sc-game-base/src/core/event-publishers";
 import { logger } from "sc-common";
 import { PlayGamePermissionValidator } from "sc-game-base/src/core/validators";
 import { HistoryQuery, RoundQuery } from "sc-game-base/src/core/query-apis";
-import { SubmitArrangementConsumer, SurveyConsumer } from "../../../src/consumers";
+import { CreateNewTableConsumer, SubmitArrangementConsumer, SurveyConsumer } from "../../../src/consumers";
 import { RearrangePayload, SubmitPayload } from "../../../src/consumers/submit-arrangement-consumer";
 import { SurveyPayload } from "../../../src/consumers/survey-consumer";
 
@@ -17,10 +17,12 @@ describe("SocketRouter", () => {
     let mockSocketClient: Socket<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap, any>;
     let mockSubmitArrangementConsumer: SubmitArrangementConsumer;
     let mockSurveyConsumer: SurveyConsumer;
+    let mockCreateNewTableConsumer: CreateNewTableConsumer;
 
     beforeEach(() => {
         mockSocketClient = {
             on: jest.fn(),
+            id: "",
         } as unknown as Socket<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap, any>;
 
         mockSubmitArrangementConsumer = {
@@ -31,6 +33,10 @@ describe("SocketRouter", () => {
         mockSurveyConsumer = {
             consume: jest.fn(),
         } as unknown as SurveyConsumer;
+
+        mockCreateNewTableConsumer = {
+            consume: jest.fn().mockResolvedValue("mocked response"),
+        } as unknown as CreateNewTableConsumer;
 
         socketRouter = new SocketRouter({
             definition: {} as GameDefinition,
@@ -46,6 +52,7 @@ describe("SocketRouter", () => {
             roundQuery: {} as RoundQuery,
             submitArrangementConsumer: mockSubmitArrangementConsumer,
             surveyConsumer: mockSurveyConsumer,
+            createNewTableConsumer: mockCreateNewTableConsumer,
         });
 
         socketRouter.init(mockSocketClient);
@@ -61,6 +68,7 @@ describe("SocketRouter", () => {
         expect(mockSocketClient.on).toHaveBeenCalledWith("submitArrangement", expect.any(Function));
         expect(mockSocketClient.on).toHaveBeenCalledWith("rearrange", expect.any(Function));
         expect(mockSocketClient.on).toHaveBeenCalledWith("survey", expect.any(Function));
+        expect(mockSocketClient.on).toHaveBeenCalledWith("createNewTable", expect.any(Function));
     });
 
     it("should handle submitArrangement event", () => {
@@ -100,5 +108,29 @@ describe("SocketRouter", () => {
         socketRouter.handleUpdateSurvey(payload);
 
         expect(mockSurveyConsumer.consume).toHaveBeenCalledWith(mockSocketClient, payload);
+    });
+
+    it("should handle create new table event", async () => {
+        // Arrange
+        const mockPlayer = {
+            UID: "socket123",
+            profile: { name: "player1" },
+            session: { playerId: "player1" },
+        };
+
+        // Mock the gameData to include the player with the corresponding socket ID
+        socketRouter.gameData = {
+            realPlayers: {
+                socket123: mockPlayer,
+            },
+        } as any;
+
+        (mockSocketClient as any).id = "socket123";
+
+        // Act
+        await socketRouter.handleCreateNewTable();
+
+        // Assert
+        expect(mockCreateNewTableConsumer.consume).toHaveBeenCalledWith(mockPlayer);
     });
 });

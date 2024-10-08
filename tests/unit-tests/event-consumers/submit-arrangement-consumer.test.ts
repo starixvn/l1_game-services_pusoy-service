@@ -254,6 +254,244 @@ describe("SubmitArrangementConsumer", () => {
             // Assert
             expect(isValid).toBe(false);
         });
+
+        it("should return false if data is missing", () => {
+            // Arrange
+            const data = null;
+
+            // Act
+            const isValid = submitArrangementConsumer.isValidSubmit(data as any);
+
+            // Assert
+            expect(isValid).toBe(false);
+        });
+
+        it("should return false if playerName is missing", () => {
+            // Arrange
+            const data: SubmitPayload = {
+                playerId: "player1",
+                playerName: "",
+                hand: { front: [], middle: [], back: [] } as Hand<number[]>,
+                roundId: 1,
+                submit: true,
+            };
+
+            // Act
+            const isValid = submitArrangementConsumer.isValidSubmit(data);
+
+            // Assert
+            expect(isValid).toBe(false);
+        });
+
+        it("should return false if playerId is missing", () => {
+            // Arrange
+            const data: SubmitPayload = {
+                playerId: "",
+                playerName: "Player One",
+                hand: { front: [], middle: [], back: [] } as Hand<number[]>,
+                roundId: 1,
+                submit: true,
+            };
+
+            // Act
+            const isValid = submitArrangementConsumer.isValidSubmit(data);
+
+            // Assert
+            expect(isValid).toBe(false);
+        });
+
+        it("should return false if hand is missing", () => {
+            // Arrange
+            const data: SubmitPayload = {
+                playerId: "player1",
+                playerName: "Player One",
+                hand: null as any,
+                roundId: 1,
+                submit: true,
+            };
+
+            // Act
+            const isValid = submitArrangementConsumer.isValidSubmit(data);
+
+            // Assert
+            expect(isValid).toBe(false);
+        });
+
+        it("should return false if roundId is missing", () => {
+            // Arrange
+            const data: SubmitPayload = {
+                playerId: "player1",
+                playerName: "Player One",
+                hand: { front: [], middle: [], back: [] } as Hand<number[]>,
+                roundId: null as any,
+                submit: true,
+            };
+
+            // Act
+            const isValid = submitArrangementConsumer.isValidSubmit(data);
+
+            // Assert
+            expect(isValid).toBe(false);
+        });
+
+        it("should return false if tableData is missing", () => {
+            // Arrange
+            const data: SubmitPayload = {
+                playerId: "player1",
+                playerName: "Player One",
+                hand: { front: [], middle: [], back: [] } as Hand<number[]>,
+                roundId: 1,
+                submit: true,
+            };
+
+            gameData.ingame[data.playerName] = null as any;
+
+            // Act
+            const isValid = submitArrangementConsumer.isValidSubmit(data);
+
+            // Assert
+            expect(isValid).toBe(false);
+        });
+
+        it("should return false if currentRound is missing", () => {
+            // Arrange
+            const data: SubmitPayload = {
+                playerId: "player1",
+                playerName: "Player One",
+                hand: { front: [], middle: [], back: [] } as Hand<number[]>,
+                roundId: 1,
+                submit: true,
+            };
+
+            gameData.ingame[data.playerName] = { roundData: null } as any;
+
+            // Act
+            const isValid = submitArrangementConsumer.isValidSubmit(data);
+
+            // Assert
+            expect(isValid).toBe(false);
+        });
+
+        it("should return false if roundId does not match", () => {
+            // Arrange
+            const data: SubmitPayload = {
+                playerId: "player1",
+                playerName: "Player One",
+                hand: { front: [], middle: [], back: [] } as Hand<number[]>,
+                roundId: 2,
+                submit: true,
+            };
+
+            const tableData: any = {
+                roundData: {
+                    roundId: 1,
+                    result: {
+                        player1: { hand: { front: [], middle: [], back: [] } },
+                    },
+                    realPlayerSubmitted: false,
+                },
+                playerId: "player1",
+            };
+
+            gameData.ingame[data.playerName] = tableData;
+
+            // Act
+            const isValid = submitArrangementConsumer.isValidSubmit(data);
+
+            // Assert
+            expect(isValid).toBe(false);
+        });
+
+        it("should return false if playerId does not match", () => {
+            // Arrange
+            const data: SubmitPayload = {
+                playerId: "player2",
+                playerName: "Player One",
+                hand: { front: [], middle: [], back: [] } as Hand<number[]>,
+                roundId: 1,
+                submit: true,
+            };
+
+            const tableData: any = {
+                roundData: {
+                    roundId: 1,
+                    result: {
+                        player1: { hand: { front: [], middle: [], back: [] } },
+                    },
+                    realPlayerSubmitted: false,
+                },
+                playerId: "player1",
+            };
+
+            gameData.ingame[data.playerName] = tableData;
+
+            // Act
+            const isValid = submitArrangementConsumer.isValidSubmit(data);
+
+            // Assert
+            expect(isValid).toBe(false);
+        });
+
+        it("should return false if realPlayerSubmitted is true", () => {
+            // Arrange
+            const data: SubmitPayload = {
+                playerId: "player1",
+                playerName: "Player One",
+                hand: { front: [], middle: [], back: [] } as Hand<number[]>,
+                roundId: 1,
+                submit: true,
+            };
+
+            const tableData: any = {
+                roundData: {
+                    roundId: 1,
+                    result: {
+                        player1: { hand: { front: [], middle: [], back: [] } },
+                    },
+                    realPlayerSubmitted: true,
+                },
+                playerId: "player1",
+            };
+
+            gameData.ingame[data.playerName] = tableData;
+
+            // Act
+            const isValid = submitArrangementConsumer.isValidSubmit(data);
+
+            // Assert
+            expect(isValid).toBe(false);
+        });
+
+        it("should return true for a valid submission", () => {
+            // Arrange
+            const data: SubmitPayload = {
+                playerId: "player1",
+                playerName: "Player One",
+                hand: { front: [], middle: [], back: [] } as Hand<number[]>,
+                roundId: 1,
+                submit: true,
+            };
+
+            const tableData: any = {
+                roundData: {
+                    roundId: 1,
+                    result: {
+                        player1: { hand: { front: [], middle: [], back: [] } },
+                    },
+                    realPlayerSubmitted: false,
+                },
+                playerId: "player1",
+            };
+
+            gameData.ingame[data.playerName] = tableData;
+            (isSameCards as jest.Mock).mockReturnValue(true);
+
+            // Act
+            const isValid = submitArrangementConsumer.isValidSubmit(data);
+
+            // Assert
+            expect(isValid).toBe(true);
+        });
     });
 
     describe("updatePlayerHandResultToDatabase", () => {

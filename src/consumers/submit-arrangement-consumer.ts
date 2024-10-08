@@ -42,7 +42,7 @@ export default class SubmitArrangementConsumer {
         const tableData = this.gameData.ingame[data.playerName];
         const currentRound = tableData.roundData as RoundOfTable;
 
-        if (currentRound.observer) {
+        if (!tableData || !currentRound || currentRound.observer) {
             return;
         }
 
@@ -74,9 +74,9 @@ export default class SubmitArrangementConsumer {
 
     consumeRearrangeCards(data: { playerId: string; playerName: string }) {
         const tableData = this.gameData.ingame[data.playerName];
-        const currentRound = tableData.roundData as RoundOfTable;
+        const currentRound = tableData?.roundData as RoundOfTable;
 
-        if (currentRound.observer) {
+        if (!tableData || !currentRound || currentRound.observer) {
             return;
         }
 

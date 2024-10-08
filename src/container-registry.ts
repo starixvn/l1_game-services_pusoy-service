@@ -10,11 +10,11 @@ import {
     SubmitArrangementConsumer,
     SurveyConsumer,
     UserDisconnectConsumer,
+    BotArrangementConsumer,
 } from "./consumers";
 import { betLogs, bets, rounds, tmpBets, bots, survey } from "./models";
 import Bot from "./crons/bot";
 import SocketRouter from "./router/socket-router";
-import BotArrangementConsumer from "./consumers/bot-arrangement-consumer";
 import { GameStatusPublisher, RoundResultPublisher } from "./publishers";
 
 export default class ContainerRegistry extends Table.TableContainerRegistry {

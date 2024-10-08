@@ -19,6 +19,7 @@ export default class InGameConsumer extends TableInGameConsumer {
     surveyRepository: mongoose.Model<ISurvey>;
     botArrangementConsumer: BotArrangementConsumer;
     bot: Bot;
+    chance: Chance.Chance;
 
     constructor(
         definition: GameDefinition,
@@ -35,6 +36,7 @@ export default class InGameConsumer extends TableInGameConsumer {
         this.surveyRepository = surveyRepository;
         this.botArrangementConsumer = botArrangementConsumer;
         this.bot = bot;
+        this.chance = new Chance();
     }
 
     async consume(realPlayer: RealPlayer) {
@@ -110,7 +112,6 @@ export default class InGameConsumer extends TableInGameConsumer {
     }
 
     async initOrUpdateTable(realPlayer: RealPlayer) {
-        const chance = new Chance();
         const tableData = this.gameData.ingame[realPlayer.profile.name];
 
         if (tableData?.roundData && tableData.roundData.remainingTime > 0) {
@@ -120,14 +121,12 @@ export default class InGameConsumer extends TableInGameConsumer {
             tableData.canAddBot = true;
         } else {
             const newTable = this.createNewTable(realPlayer);
-            chance.bool({ likelihood: 80 }) === true && (await this.fakeUnfinishedRound(newTable));
+            this.chance.bool({ likelihood: 80 }) === true && (await this.fakeUnfinishedRound(newTable));
             this.gameData.ingame[realPlayer.profile.name] = newTable;
         }
     }
 
     createNewTable(realPlayer: RealPlayer) {
-        const chance = new Chance();
-
         const newTable = {
             canDestroy: false,
             canAddBot: true,
@@ -141,7 +140,7 @@ export default class InGameConsumer extends TableInGameConsumer {
             botsInTable: [] as BotInRound[],
             freeBotSlots: BOT_SLOTS,
             balance: DEFAULT_BALANCE,
-            searchingPlayersTime: chance.integer({
+            searchingPlayersTime: this.chance.integer({
                 min: this.definition.searchingPlayersTime.min,
                 max: this.definition.searchingPlayersTime.max,
             }),
@@ -159,14 +158,12 @@ export default class InGameConsumer extends TableInGameConsumer {
 
         tableInGame.searchingPlayersTime = 0;
 
-        const chance = new Chance();
-
         const maxFakeRemainingTime = this.definition.durations.timeline.arrangement - 2;
         const minFakeRemainingTime = 4;
 
         const newRound: RoundOfTable = {
             roundId: this.gameData.roundId,
-            remainingTime: chance.integer({ min: minFakeRemainingTime, max: maxFakeRemainingTime }),
+            remainingTime: this.chance.integer({ min: minFakeRemainingTime, max: maxFakeRemainingTime }),
             showingResultTime: 0,
             result: {},
             otherPlayers: [...tableInGame.botsInTable],
@@ -197,12 +194,11 @@ export default class InGameConsumer extends TableInGameConsumer {
     }
 
     async fakeBotInTable(tableInGame: TableInGame) {
-        const chance = new Chance();
-        const numberOfBots = chance.pickone([2, 3]);
+        const numberOfBots = this.chance.pickone([2, 3]);
         const bots = await this.bot.getBotsToJoin(numberOfBots);
 
         bots.forEach((bot) => {
-            const slot = chance.pickone(tableInGame.freeBotSlots);
+            const slot = this.chance.pickone(tableInGame.freeBotSlots);
             tableInGame.freeBotSlots = tableInGame.freeBotSlots.filter((s) => s !== slot);
 
             const newBot = {
@@ -211,7 +207,7 @@ export default class InGameConsumer extends TableInGameConsumer {
                 red: bot.red,
                 avatarId: bot.avatarId,
                 slot: slot,
-                balance: chance.integer({ min: DEFAULT_BALANCE - 100, max: DEFAULT_BALANCE + 100 }),
+                balance: this.chance.integer({ min: DEFAULT_BALANCE - 100, max: DEFAULT_BALANCE + 100 }),
             };
 
             tableInGame.botsInTable.push(newBot);

@@ -5,6 +5,7 @@ import SubmitArrangementConsumer from "./submit-arrangement-consumer";
 import UserDisconnectConsumer from "./user-disconnect-consumer";
 import SurveyConsumer from "./survey-consumer";
 import CreateNewTableConsumer from "./create-new-table-consumer";
+import BotArrangementConsumer from "./bot-arrangement-consumer";
 
 export {
     InGameConsumer,
@@ -14,4 +15,5 @@ export {
     UserDisconnectConsumer,
     SurveyConsumer,
     CreateNewTableConsumer,
+    BotArrangementConsumer,
 };
