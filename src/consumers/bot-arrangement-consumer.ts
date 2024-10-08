@@ -91,9 +91,7 @@ export default class BotArrangementConsumer {
 
         const maxArrangeTime = Math.min(remainingTime, this.definition.durations.timeline.arrangement - minArrangeDuration);
 
-        const arrangeTime = this.chance.integer({ min: 0, max: maxArrangeTime });
-
-        return arrangeTime;
+        return this.chance.integer({ min: 0, max: maxArrangeTime });
     };
 
     async handleBotArrangements(tableData: TableInGame) {

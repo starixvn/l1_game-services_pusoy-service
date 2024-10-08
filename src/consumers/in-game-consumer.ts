@@ -3,7 +3,7 @@ import GameData, { BotInRound, RealPlayer, RoundOfTable, TableInGame } from "../
 import GameDefinition from "../game-definition";
 import scoreConfig from "../score-config";
 import GameManagementApiClientFactory from "sc-game-base/src/core/game-management-api";
-import { Core, Table } from "sc-game-base";
+import { Core } from "sc-game-base";
 import { RoundQuery } from "sc-game-base/src/core/query-apis";
 import { ISurvey } from "../models/survey";
 import mongoose from "mongoose";
