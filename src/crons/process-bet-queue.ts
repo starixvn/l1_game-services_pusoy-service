@@ -129,14 +129,6 @@ export default class ProcessBetQueue extends TableProcessBetQueue {
 
         await this.insertBet(player, roundId, bet, rate);
 
-        // callAndForget(
-        //     this.gameManagementApiClient.users.setBalanceAndDecreaseScoins({
-        //         id: player.UID,
-        //         balance: balance.red,
-        //         deductionscoins: 0,
-        //     })
-        // );
-
         this.notifyPlacingBetResult(player, balance, bet, rate);
 
         if (player.profile.minBet !== balance.minBet || player.profile.maxBet !== balance.maxBet) {
