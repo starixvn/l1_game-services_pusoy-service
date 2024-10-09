@@ -159,6 +159,7 @@ export default class GameCron extends Table.Crons.TableGameCron {
 
         const currentRound = tableInGame.roundData;
 
+        // stop proceed when create new round
         if (currentRound.observer && !this.gameData.ingame[tableInGame.name]?.roundData?.observer) {
             return;
         }

@@ -102,7 +102,6 @@ export default class ProcessBetQueue extends TableProcessBetQueue {
         const apiResult = await this.stubPlaceBet({ id: player.UID, session: player.session }, betInfo);
         const { response } = apiResult;
 
-        // TODO: update place bet api
         if (apiResult.isOk) {
             await this.handleSuccessBet(player, response, betInfo.gameRoundId, payload);
         } else {

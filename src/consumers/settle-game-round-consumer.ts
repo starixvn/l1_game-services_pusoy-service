@@ -9,6 +9,15 @@ import { RoundResultPublisher, UserBetResultPublisher } from "sc-game-base/src/c
 import GameManagementApiClientFactory from "sc-game-base/src/core/game-management-api";
 import { IBot } from "../models/bots";
 
+type SettleEffectDuration = {
+    natural: number;
+    fullPusoy: number;
+    crack: number;
+    mini: number;
+    normal: number;
+    chipFly: number;
+};
+
 export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.SettleGameRoundConsumer {
     declare roundsRepository: mongoose.Model<IRound>;
     declare gameData: GameData;
@@ -52,54 +61,29 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
 
     async settleTable(tableData: TableInGame) {
         const round = tableData.roundData as RoundOfTable;
-
         const handResults = Object.values(round.result).sort((a, b) => a.slot - b.slot);
-
         const hands = handResults.map((handResult) => handResult.hand);
-
         const settlements = this.definition.settle(hands) as RawSettlement[];
 
         const settlementResult: Record<string, Settlement> = {};
-
-        const durations = this.definition.durations;
-
-        const settleEffectDuration = {
-            natural: 0,
-            fullPusoy: 0,
-            crack: 0,
-            mini: 0,
-            normal: 0,
-            chipFly: 0,
-        };
-
+        const settleEffectDuration = this.initializeSettleEffectDuration();
         let isHavingMiniPusoy = false;
         let numberPlayersCrack = 0;
         let numberPlayersNatural = 0;
 
         settlements.forEach((settlement, index) => {
+            this.updateSettleEffectDuration(settlement, settleEffectDuration);
+
             if (settlement.natural.name !== Natural.Unknown) {
-                settleEffectDuration.natural += durations.animation.natural;
                 numberPlayersNatural += 1;
             }
-            if (settlement.pusoy.full > 0) {
-                settleEffectDuration.fullPusoy = durations.animation.pusoy.full;
-            }
+
             if (settlement.crack.isCrack) {
-                settleEffectDuration.crack = durations.animation.crack;
                 numberPlayersCrack += 1;
             }
+
             if (settlement.pusoy.mini) {
-                const mini: { [key: string]: number } = {};
-
-                Object.entries(settlement.pusoy.mini).forEach(([key, value]) => {
-                    const miniSlot = handResults[+key].slot;
-                    mini[miniSlot] = value;
-                    settlement.pusoy.mini = mini;
-
-                    if (!isHavingMiniPusoy && value > 0) {
-                        isHavingMiniPusoy = true;
-                    }
-                });
+                isHavingMiniPusoy = this.updateMiniPusoy(settlement, handResults, isHavingMiniPusoy);
             }
 
             settlementResult[handResults[index].playerId] = {
@@ -109,15 +93,90 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
             };
 
             this.updateBotScore(tableData, settlementResult[handResults[index].playerId]);
-
             this.updateBalance(tableData, settlementResult[handResults[index].playerId]);
         });
 
+        if (!round.observer) {
+            await this.roundsRepository.updateOne({ id: round.roundId }, { settlementResult }).exec();
+        }
+
+        const publishInfo: RoundResultPublishInfo = {
+            socketId: tableData.socketId,
+            roundId: round.roundId,
+            settlementResult,
+            settleEffectDuration,
+            result: round.result,
+        };
+
+        const totalSettleEffectDuration = this.calculateTotalSettleEffectDuration(
+            settleEffectDuration,
+            settlements,
+            isHavingMiniPusoy,
+            numberPlayersCrack,
+            numberPlayersNatural
+        );
+
+        if (round.observer && !this.gameData.ingame[tableData.name]?.roundData?.observer) {
+            return totalSettleEffectDuration;
+        }
+
+        this.roundResultPublisher.publishRoundResult(publishInfo);
+        return totalSettleEffectDuration;
+    }
+
+    private initializeSettleEffectDuration(): SettleEffectDuration {
+        return {
+            natural: 0,
+            fullPusoy: 0,
+            crack: 0,
+            mini: 0,
+            normal: 0,
+            chipFly: 0,
+        };
+    }
+
+    private updateSettleEffectDuration(settlement: RawSettlement, settleEffectDuration: SettleEffectDuration) {
+        const durations = this.definition.durations;
+
+        if (settlement.natural.name !== Natural.Unknown) {
+            settleEffectDuration.natural += durations.animation.natural;
+        }
+        if (settlement.pusoy.full > 0) {
+            settleEffectDuration.fullPusoy = durations.animation.pusoy.full;
+        }
+        if (settlement.crack.isCrack) {
+            settleEffectDuration.crack = durations.animation.crack;
+        }
+    }
+
+    private updateMiniPusoy(settlement: RawSettlement, handResults: any[], isHavingMiniPusoy: boolean) {
+        const mini: { [key: string]: number } = {};
+
+        Object.entries(settlement.pusoy.mini).forEach(([key, value]) => {
+            const miniSlot = handResults[+key].slot;
+            mini[miniSlot] = value;
+            settlement.pusoy.mini = mini;
+
+            if (!isHavingMiniPusoy && value > 0) {
+                isHavingMiniPusoy = true;
+            }
+        });
+
+        return isHavingMiniPusoy;
+    }
+
+    private calculateTotalSettleEffectDuration(
+        settleEffectDuration: SettleEffectDuration,
+        settlements: RawSettlement[],
+        isHavingMiniPusoy: boolean,
+        numberPlayersCrack: number,
+        numberPlayersNatural: number
+    ) {
+        const durations = this.definition.durations;
+
         settleEffectDuration.mini = isHavingMiniPusoy ? durations.animation.pusoy.mini : 0;
 
-        const tie = settlements.every((settlement) => settlement.sum === 0);
-
-        settleEffectDuration.chipFly = tie ? 0 : durations.animation.chipFly;
+        settleEffectDuration.chipFly = settlements.every((settlement) => settlement.sum === 0) ? 0 : durations.animation.chipFly;
 
         settleEffectDuration.normal =
             numberPlayersCrack >= settlements.length - 1 ||
@@ -126,27 +185,7 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
                 ? 0
                 : durations.animation.normal;
 
-        const totalSettleEffectDuration = Object.values(settleEffectDuration).reduce((a, b) => a + b, 0);
-
-        if (!round.observer) {
-            await this.roundsRepository.updateOne({ id: round.roundId }, { settlementResult: settlementResult }).exec();
-        }
-
-        const publishInfo: RoundResultPublishInfo = {
-            socketId: tableData.socketId,
-            roundId: round.roundId,
-            settlementResult: settlementResult,
-            settleEffectDuration: settleEffectDuration,
-            result: round.result,
-        };
-
-        if (round.observer && !this.gameData.ingame[tableData.name]?.roundData?.observer) {
-            return totalSettleEffectDuration;
-        }
-
-        this.roundResultPublisher.publishRoundResult(publishInfo);
-
-        return totalSettleEffectDuration;
+        return Object.values(settleEffectDuration).reduce((a, b) => a + b, 0);
     }
 
     async updateBotScore(tableData: TableInGame, settlementResult: Settlement) {
@@ -157,17 +196,13 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
         }
 
         const filter = { roundId: roundData.roundId, botId: settlementResult.playerId };
-
-        const update = {
-            score: settlementResult.sum,
-        };
+        const update = { score: settlementResult.sum };
 
         await this.botsRepository.findOneAndUpdate(filter, update).exec();
     }
 
     updateBalance(tableData: TableInGame, settlementResult: Settlement) {
         const roundData = tableData.roundData as RoundOfTable;
-
         const bot = roundData.otherPlayers.find((bot) => bot.id === settlementResult.playerId);
 
         if (bot) {

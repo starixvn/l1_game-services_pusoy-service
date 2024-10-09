@@ -4,8 +4,6 @@ import GameDefinition from "../../../src/game-definition";
 import GameData, { RealPlayer, RoundOfTable, TableInGame } from "../../../src/game-data";
 import { Core } from "sc-game-base";
 import GameManagementApiClientFactory from "sc-game-base/src/core/game-management-api";
-import mongoose from "mongoose";
-import { ISurvey } from "../../../src/models/survey";
 import scoreConfig from "../../../src/score-config";
 import { BOT_SLOTS, DEFAULT_BALANCE } from "../../../src/constants";
 import Bot from "../../../src/crons/bot";
@@ -25,7 +23,6 @@ describe("InGameConsumer tests", () => {
     const publisher = stub<Core.BaseEventPublishers.BaseEventPublisher>();
     const getBalance = jest.fn();
     const gameManagementApiClientFactory = stub<GameManagementApiClientFactory>();
-    const surveyRepository = stub<mongoose.Model<ISurvey>>();
     const botArrangementConsumer = stub<BotArrangementConsumer>();
     const bot = stub<Bot>();
     let consumer: InGameConsumer;
@@ -39,7 +36,6 @@ describe("InGameConsumer tests", () => {
             publisher,
             getBalance,
             gameManagementApiClientFactory,
-            surveyRepository,
             botArrangementConsumer,
             bot
         );
@@ -112,7 +108,6 @@ describe("InGameConsumer tests", () => {
                 pusoyRound: roundData,
                 otherPlayers: tableData.botsInTable,
                 user: { ...user, rate: 1 },
-                surveyUpdated: false,
                 observer: false,
             };
 

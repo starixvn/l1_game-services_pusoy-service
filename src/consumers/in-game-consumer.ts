@@ -5,8 +5,6 @@ import scoreConfig from "../score-config";
 import GameManagementApiClientFactory from "sc-game-base/src/core/game-management-api";
 import { Core } from "sc-game-base";
 import { RoundQuery } from "sc-game-base/src/core/query-apis";
-import { ISurvey } from "../models/survey";
-import mongoose from "mongoose";
 import Chance from "chance";
 import * as Helper from "../helpers";
 
@@ -16,7 +14,6 @@ import Bot from "../crons/bot";
 export default class InGameConsumer extends TableInGameConsumer {
     declare gameData: GameData;
     declare definition: GameDefinition;
-    surveyRepository: mongoose.Model<ISurvey>;
     botArrangementConsumer: BotArrangementConsumer;
     bot: Bot;
     chance: Chance.Chance;
@@ -28,12 +25,10 @@ export default class InGameConsumer extends TableInGameConsumer {
         publisher: Core.BaseEventPublishers.BaseEventPublisher,
         getBalance: any,
         gameManagementApiClientFactory: GameManagementApiClientFactory,
-        surveyRepository: mongoose.Model<ISurvey>,
         botArrangementConsumer: BotArrangementConsumer,
         bot: Bot
     ) {
         super(definition, gameData, roundQuery, publisher, getBalance, gameManagementApiClientFactory);
-        this.surveyRepository = surveyRepository;
         this.botArrangementConsumer = botArrangementConsumer;
         this.bot = bot;
         this.chance = new Chance();
@@ -63,7 +58,6 @@ export default class InGameConsumer extends TableInGameConsumer {
         const roundData = this.getCurrentRoundData(realPlayer);
         const playerName = realPlayer.profile.name;
         const tableData = this.gameData.ingame[playerName];
-        const surveyStatus = await this.getSurveyStatus(realPlayer.session.playerId);
 
         return {
             remainingTime: tableData.roundData ? roundData.remainingTime : this.definition.durations.timeline.transition,
@@ -71,7 +65,6 @@ export default class InGameConsumer extends TableInGameConsumer {
             gameConfigs: configs,
             pusoyRound: tableData.roundData ? roundData : { playerBalance: tableData.balance },
             user: { ...user, rate },
-            surveyUpdated: surveyStatus,
             observer: tableData.roundData?.observer ?? false,
         };
     }
@@ -81,12 +74,6 @@ export default class InGameConsumer extends TableInGameConsumer {
         const gameSettings = { durations: this.definition.durations, suitesMapper: this.definition.suitesMapper, scoreConfig: scoreConfig };
 
         return { ...settings, ...gameSettings };
-    }
-
-    async getSurveyStatus(playerId: string) {
-        const survey = await this.surveyRepository.findOne({ playerId });
-
-        return survey ? survey.wishToPlayWithRealMoney : false;
     }
 
     getCurrentRoundData(realPlayer: RealPlayer) {
@@ -126,8 +113,8 @@ export default class InGameConsumer extends TableInGameConsumer {
         }
     }
 
-    createNewTable(realPlayer: RealPlayer) {
-        const newTable = {
+    createNewTable(realPlayer: RealPlayer): TableInGame {
+        return {
             canDestroy: false,
             canAddBot: true,
             socketId: realPlayer.UID,
@@ -145,8 +132,6 @@ export default class InGameConsumer extends TableInGameConsumer {
                 max: this.definition.searchingPlayersTime.max,
             }),
         } as TableInGame;
-
-        return newTable;
     }
 
     async fakeUnfinishedRound(tableInGame: TableInGame) {
