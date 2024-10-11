@@ -92,7 +92,6 @@ export default class Bot extends BaseBot {
 
         bots.forEach((bot) => {
             if (tableInGame.freeBotSlots.length === 0) {
-                this.logService.logError("No free bot slots available");
                 return;
             }
 
