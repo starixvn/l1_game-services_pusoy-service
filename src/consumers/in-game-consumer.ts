@@ -179,7 +179,12 @@ export default class InGameConsumer extends TableInGameConsumer {
     }
 
     async fakeBotInTable(tableInGame: TableInGame) {
-        const numberOfBots = this.chance.pickone([2, 3]);
+        const numberOfBots = Math.min(this.chance.pickone([2, 3]), this.bot.maxNumberOfBots);
+
+        if (numberOfBots < 2) {
+            return;
+        }
+
         const bots = await this.bot.getBotsToJoin(numberOfBots);
 
         bots.forEach((bot) => {
