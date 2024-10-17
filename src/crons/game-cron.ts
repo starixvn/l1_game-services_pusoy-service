@@ -204,9 +204,20 @@ export default class GameCron extends Table.Crons.TableGameCron {
         }
 
         if (remainingTime === -currentRound.showingResultTime) {
-            console.log("showing result: ", tableInGame.name);
+            console.log("showing result end: ", tableInGame.name);
+
             await this.bot.removeSomeBotsFromTable(tableInGame);
+
+            this.publishEndRound(tableInGame, durations);
+
             delete tableInGame.roundData;
         }
+    }
+
+    publishEndRound(tableInGame: TableInGame, durations: Duration) {
+        this.gameStatusPublisher.publishToUser(tableInGame.socketId, {
+            remainingTime: durations.timeline.transition,
+            otherPlayers: tableInGame.botsInTable,
+        });
     }
 }
