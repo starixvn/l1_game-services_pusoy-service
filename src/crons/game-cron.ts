@@ -221,9 +221,11 @@ export default class GameCron extends Table.Crons.TableGameCron {
             });
         }
 
-        this.gameStatusPublisher.publishToUser(tableInGame.socketId, {
-            remainingTime: durations.timeline.transition,
-            otherPlayers: tableInGame.botsInTable,
-        });
+        setTimeout(() => {
+            this.gameStatusPublisher.publishToUser(tableInGame.socketId, {
+                remainingTime: durations.timeline.transition,
+                otherPlayers: tableInGame.botsInTable,
+            });
+        }, 100);
     }
 }
