@@ -64,6 +64,6 @@ export default {
         endpoint: "http://10.10.50.69:4318/v1/traces",
     },
     botUrls: [
-        "http://l1-pusoy-bots-sai-local-service:5000"
+        "http://l1-pusoy-bots-sai-local-service:5000/move"
     ],
 };
