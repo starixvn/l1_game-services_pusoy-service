@@ -63,8 +63,6 @@ export default {
         endpoint: "http://10.2.190.51:4318/v1/traces",
     },
     botUrls: [
-        "http://l1_bots_chinese_poker_bot_simple_UAT:5000/move",
-        "http://l1_chinese_poker_bot_probability_UAT:5000/move",
-        "http://l1_chinese_poker_bot_probability_UAT:5000/move",
+        "http://l1_pusoy_bots_sai_UAT:5000/move",
     ],
 };
