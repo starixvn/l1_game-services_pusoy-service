@@ -64,8 +64,8 @@ export default {
         endpoint: "http://10.10.50.69:4318/v1/traces",
     },
     botUrls: [
-        "https://bots.lumigame.com/pusoy-bot-simple/move",
-        "https://bots.lumigame.com/pusoy-bot-probability/move",
-        "https://bots.lumigame.com/pusoy-bot-probability/move",
+        "http://l1-bots-chinese-poker-bot-simple-local-service:5000/move",
+        "http://l1-chinese-poker-bot-probability-local-service:5000/move",
+        "http://l1-pusoy-bots-sai-local-service:5000/move",
     ],
 };
