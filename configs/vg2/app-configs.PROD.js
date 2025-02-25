@@ -64,5 +64,7 @@ export default {
     },
     botUrls: [
         "http://l1_pusoy_bots_sai_PROD:5000/move",
+        "http://l1_chinese_poker_bot_probability_PROD:5000/move",
+        "http://l1_bots_chinese_poker_bot_simple_PROD:5000/move",
     ],
 };
