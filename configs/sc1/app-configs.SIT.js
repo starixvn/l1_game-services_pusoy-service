@@ -63,6 +63,8 @@ export default {
         endpoint: "http://10.2.190.51:4318/v1/traces",
     },
     botUrls: [
-        "http://l1-pusoy-bots-sai-SIT-service:5000/move",
+        "http://l1-pusoy-bots-sai-sit-service:5000/move",
+        "http://l1-bots-chinese-poker-bot-simple-sit-service:5000/move",
+        "http://l1-chinese-poker-bot-probability-sit-service:5000/move"
     ],
 };
