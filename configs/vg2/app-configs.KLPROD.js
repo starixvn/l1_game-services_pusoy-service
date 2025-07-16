@@ -63,8 +63,8 @@ export default {
         endpoint: "http://jaeger-collector-sc.ops-klprod.gamora.prod:32318/v1/traces",
     },
     botUrls: [
-        "http://l1-pusoy-bots-sai-klprod-service:5000/move",
-        "http://l1-chinese-poker-bot-probability-klprod-service:5000/move",
-        "http://l1-bots-chinese-poker-bot-simple-klprod-service:5000/move",
+        "http://l1-pusoy-bots-sai-klprod-service.l1:5000/move",
+        "http://l1-chinese-poker-bot-probability-klprod-service.l1:5000/move",
+        "http://l1-bots-chinese-poker-bot-simple-klprod-service.l1:5000/move",
     ],
 };
